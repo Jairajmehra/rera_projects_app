@@ -63,7 +63,8 @@
     export const fetchResidentialProjects = async ({ page = 1, limit = 50, offset = 0, bounds}: FetchResidentialProjectsParams = {}): Promise<ResidentialProjectsApiResponse> => 
         {
         
-        const api_call_url = `https://test-vision-api-389008.el.r.appspot.com/residential_projects?page=${page}&limit=${limit}&offset=${offset}&minLat=${bounds?.south}&maxLat=${bounds?.north}&minLng=${bounds?.west}&maxLng=${bounds?.east}`;
+        const boundsParams = bounds ? `&minLat=${bounds.south}&maxLat=${bounds.north}&minLng=${bounds.west}&maxLng=${bounds.east}` : '';
+        const api_call_url = `https://test-vision-api-389008.el.r.appspot.com/residential_projects?page=${page}&limit=${limit}&offset=${offset}${boundsParams}`;
         console.log('API call URL:', api_call_url);
         const res = await fetch(api_call_url);
         if (!res.ok) {
