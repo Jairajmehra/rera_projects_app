@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import useResidentialProjects from "../../hooks/useResidentialProjects";
 import { ResidentialProject } from "../../services/residentialProjectService";
-import { useQuery } from "@tanstack/react-query";
+import debounce from 'lodash.debounce';
+
 
 declare global {
     interface Window {
@@ -19,10 +20,33 @@ const MapContainer: React.FC = () => {
         const [lat, lng] = coordinateString.split(',').map(Number);
         return { lat, lng };
     };
-
-    const { data, isLoading, error } = useResidentialProjects({page: 1, limit: 200, offset: 0});
+    // Add a Set to track unique markers by some identifier (like project ID or coordinates)
+    const markerPositionsRef = useRef(new Set<string>());
     const mapRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+
+    const [bounds, setBounds] = useState<google.maps.LatLngBounds | null>(null);
+    const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+
+    const { data, isLoading, error } = useResidentialProjects({page: 1, limit: 200, offset: 0,
+        bounds: bounds? {
+            north: bounds.getNorthEast().lat(),
+            south: bounds.getSouthWest().lat(),
+            east: bounds.getNorthEast().lng(),
+            west: bounds.getSouthWest().lng(),
+        } : undefined,
+    });
+
+    const onBoundsChange = useCallback(debounce((map: google.maps.Map) => 
+    {
+        console.log('Debounce triggered with bounds:', map.getBounds()?.toString()); 
+        const newBounds = map.getBounds();
+            if (newBounds) {
+                console.log('Setting new bounds:', newBounds.toString());
+                setBounds(newBounds);
+            }
+    }, 500), []);
+
 
     useEffect(() => {
         if (!window.google) 
@@ -50,26 +74,51 @@ const MapContainer: React.FC = () => {
             zoom: 12,
             mapId: '4357fd779b0d90cd',
         });
-        if (data && data.projects){
-            markersRef.current = data.projects.map((residentialProject: ResidentialProject) => {
-                const {lat, lng} = parseCoordinates(residentialProject.coordinates);
-                return new window.google.maps.marker.AdvancedMarkerElement({
-                    map,
-                    position: {lat, lng},
-                    title: residentialProject.name,
-                });
-            });
-        }
-        
+
+        map.addListener('bounds_changed', () => {
+            onBoundsChange(map);
+        });
+
+        setMapInstance(map);  
     };
-    useEffect(() => {
 
-        if (window.google)
-        {
-            initMap();
-        }
+    const updateMarkers = () => {
+        if (!mapInstance || !data?.projects) return;
+        console.log('Current markers count:', markersRef.current.length);
 
-    }, [data])
+        // add new markers
+        data.projects.forEach((project: ResidentialProject) =>{
+            const markerId = project.rera;
+
+            if (markerPositionsRef.current.has(markerId))
+            {
+                //console.log('Marker already exists for project:', project.name);
+                return;
+            }
+            const {lat, lng} = parseCoordinates(project.coordinates);
+            const marker = new window.google.maps.marker.AdvancedMarkerElement({
+                map: mapInstance,
+                position: {lat, lng},
+                title: project.name,
+            });
+            markersRef.current.push(marker);
+            markerPositionsRef.current.add(markerId);
+           
+        })
+    };
+
+       // Update markers when data changes
+       useEffect(() => {
+        updateMarkers();
+    }, [data, mapInstance]);
+    // useEffect(() => {
+
+    //     if (window.google)
+    //     {
+    //         initMap();
+    //     }
+
+    // }, [data])
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error: {error.message}</div>;

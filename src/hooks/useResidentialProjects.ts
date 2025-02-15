@@ -7,13 +7,21 @@ interface UseResidentialProjectsApiParams {
     offset?: number;
     limit?: number;
     page?: number;
+    bounds?: {
+        north: number;
+        south: number;
+        east: number;
+        west: number;
   }
+}
 
-const useResidentialProjects = ({page=1, limit=100, offset=0}: UseResidentialProjectsApiParams) => {
+const useResidentialProjects = ({page=1, limit=100, offset=0, bounds}: UseResidentialProjectsApiParams) => {
 
     return useQuery<ResidentialProjectsApiResponse, Error>({
-        queryKey: ['residential-projects', page, limit, offset],
-        queryFn: () => fetchResidentialProjects({page, limit, offset}),
+        queryKey: ['residential-projects', page, limit, offset,
+            bounds ? `&north=${bounds.north}&south=${bounds.south}&east=${bounds.east}&west=${bounds.west}` : ''
+        ],
+        queryFn: () => fetchResidentialProjects({page, limit, offset, bounds}),
         placeholderData: keepPreviousData => keepPreviousData,
         staleTime: 1000 * 60 * 10,
     });
