@@ -11,11 +11,22 @@ interface ResidentialPropertyCardProps {
 const ResidentialPropertyCard: React.FC<ResidentialPropertyCardProps> = ({ project, onClick }) => {
     return (
         <div onClick={onClick} className="flex gap-4 p-4 shadow rounded cursor-pointer hover:shadow-md transition">
-        <img src={project.coverPhotoLink} alt={project.name} className="w-24 h-24 object-cover rounded" />
+             {project.coverPhotoLink ? (
+                <img 
+                    src={project.coverPhotoLink} 
+                    alt={project.name} 
+                    className="w-24 h-24 object-cover rounded" 
+                />
+            ) : (
+                <div className="w-24 h-24 bg-gray-200 rounded flex items-center justify-center">
+                    <span className="text-gray-400">No image</span>
+                </div>
+            )}
         <div className="flex flex-col justify-between">
           <h3 className="text-lg font-semibold">{project.name}</h3>
+          <h3 className="text-lg font-semibold">{project.bhk}</h3>
           <p className="text-sm text-gray-600">{project.localityNames}</p>
-          <div className="text-md font-bold">₹{project.price?.value}</div>
+          <div className="text-md font-bold">{project.price?.value}</div>
           <div className="text-sm text-gray-600">{project.projectType}</div>
         </div>
       </div>

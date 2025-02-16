@@ -4,55 +4,52 @@ import { ResidentialProject } from "../../services/residentialProjectService";
 import debounce from 'lodash.debounce';
 import ResidentialPopUpCard from "../ResidentialPopUpCard";
 import MapDrawer from "../MapDrawer";
+import { parseCoordinates, getExtendedBounds } from "../../utils/Utils";
+
 
 declare global {
     interface Window {
       google: typeof google;
-    }
-  }
+    }}
   
+  // Define our Filters interface.
+export interface Filters {
+    bhks: string[];
+    projectTypes: string[];
+    locations: string[];
+  }
 
 const MapContainer: React.FC = () => {
 
-    // utility function parse coordinates
-    // utils/mapUtils.ts
-    const parseCoordinates = (coordinateString: string): { lat: number; lng: number } => 
-    {
-        const [lat, lng] = coordinateString.split(',').map(Number);
-        return { lat, lng };
-    };
-  
-    // Add a Set to track unique markers by some identifier (like project ID or coordinates)
-    const [selectedProject, setSelectedProject] = useState<ResidentialProject | null>(null);
+    // Add a Set to track unique markers by rera number
     const markerPositionsRef = useRef(new Set<string>());
+
     const mapRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
-
+  
+    const [selectedProject, setSelectedProject] = useState<ResidentialProject | null>(null);
     const [bounds, setBounds] = useState<google.maps.LatLngBounds | null>(null);
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
 
+    // Add filter state (initially no filter is applied).
+    const [filters, setFilters] = useState<Filters>({
+        bhks: [],
+        projectTypes: [],
+        locations: []});
+
+    // Utility function to close the pop up card
     const handleCloseCard = useCallback(() => {
         setSelectedProject(null);
     }, []);
 
-    const getExtendedBounds = (bounds: google.maps.LatLngBounds, extensionPercentage: number): google.maps.LatLngBounds => {
-        const sw = bounds.getSouthWest();
-        const ne = bounds.getNorthEast();
-        const latDiff = ne.lat() - sw.lat();
-        const lngDiff = ne.lng() - sw.lng();
-        const extendedSw = new window.google.maps.LatLng(
-          sw.lat() - latDiff * extensionPercentage,
-          sw.lng() - lngDiff * extensionPercentage
-        );
-        const extendedNe = new window.google.maps.LatLng(
-          ne.lat() + latDiff * extensionPercentage,
-          ne.lng() + lngDiff * extensionPercentage
-        );
-        return new window.google.maps.LatLngBounds(extendedSw, extendedNe);
-      };
+    function clearAllMarkers() {
+        markersRef.current.forEach((marker) => (marker.map = null));
+        markersRef.current = [];
+        markerPositionsRef.current.clear();
+      }
 
-       /**
-   * Remove markers that are outside the viewport extended by 10%.
+    /**
+   * Remove markers that are outside the viewport extended by 20%.
    * Markers that lie outside the extended bounds are removed from the map.
    */
   const removeMarkersOutsideExtendedBounds = () => {
@@ -66,25 +63,26 @@ const MapContainer: React.FC = () => {
         console.log("currentBounds is not available");
         return;
     } 
-    // Extend viewport by 10% (adjust this extension as needed)
+    // Extend viewport by 20% 
     const extensionPercentage = 0.2;
     const extendedBounds = getExtendedBounds(currentBounds, extensionPercentage);
     
     // Filter markers: remove the marker if it does not fall within extended bounds
     markersRef.current = markersRef.current.filter((marker) => {
       const markerPos = marker.position;
-      console.log('markerPos:', markerPos);
       if (!markerPos || !extendedBounds.contains(markerPos)) 
       {
-        marker.remove();
+        marker.map = null;
         markerPositionsRef.current.delete(marker.title);
+        console.log('Marker removed:', marker.title);
         return false;
       }
       return true;
     });
   };
 
-    const { data, isLoading, error } = useResidentialProjects({page: 1, limit: 200, offset: 0,
+  // Fetch the projects from the API using our custom hook when the bounds change
+    const { data, isLoading } = useResidentialProjects({page: 1, limit: 200, offset: 0,
         bounds: bounds? {
             north: bounds.getNorthEast().lat(),
             south: bounds.getSouthWest().lat(),
@@ -93,6 +91,7 @@ const MapContainer: React.FC = () => {
         } : undefined,
     });
 
+    // Utility function to set the new bounds waits for 500ms before setting the bounds
     const onBoundsChange = useCallback(debounce((map: google.maps.Map) => 
     {
         const newBounds = map.getBounds();
@@ -130,7 +129,6 @@ const MapContainer: React.FC = () => {
             console.log('Map ref or window.google is not available');
             return;
         }
-
         const map = new window.google.maps.Map(mapRef.current, {
             center: { lat: 23.022938, lng: 72.530304 },
             zoom: 12,
@@ -143,54 +141,16 @@ const MapContainer: React.FC = () => {
         setMapInstance(map);
         console.log('Map instance set', map);
     };
-  
 
-    const updateMarkers = () => {
-        if (!mapInstance || !data?.projects) return;
-        console.log('Current markers count:', markersRef.current.length);
 
-        const currentBounds = mapInstance.getBounds();
-        if (!currentBounds) return;
-        // Compute the extended bounds (10% extension)
-        const extensionPercentage = 0.2;
-        const extendedBounds = getExtendedBounds(currentBounds, extensionPercentage);
-
-        // add new markers
-        data.projects.forEach((project: ResidentialProject) =>{
-            const markerId = project.rera;
-            const {lat, lng} = parseCoordinates(project.coordinates);
-            if (markerPositionsRef.current.has(markerId)) return;
-            
-            const marker = new window.google.maps.marker.AdvancedMarkerElement({
-                map: mapInstance,
-                position: {lat, lng},
-                title: project.rera,
-            });
-            // Add click listener to the marker
-            marker.addListener("click", () => 
-            {
-                console.log("Marker clicked:", project.rera);
-                setSelectedProject(project);
-            });
-            markersRef.current.push(marker);
-            markerPositionsRef.current.add(markerId);
-           
-        })
-    };
-
-       // Update markers when data changes
-       useEffect(() => 
+        useEffect(() => 
         {
-            updateMarkers();
-        }, [data, mapInstance]);
-
-
-        useEffect(() => {
             if (!mapInstance || !bounds) return;
             removeMarkersOutsideExtendedBounds();
-          }, [mapInstance, bounds]);
+        }, [mapInstance, bounds]);
 
-          const uniqueProjects = useMemo(() => {
+        const uniqueProjects = useMemo(() => 
+        {
             const uniqueMap = new Map<string, ResidentialProject>();
             data?.projects?.forEach((project) => {
               uniqueMap.set(project.rera, project);
@@ -198,6 +158,61 @@ const MapContainer: React.FC = () => {
             return Array.from(uniqueMap.values());
           }, [data?.projects]);
 
+          // Apply the filters to the unique projects.
+        const filteredProjects = useMemo(() => {
+            console.log('Filtering projects with filters:', filters);
+            console.log('Unique projects:', uniqueProjects);
+            return uniqueProjects.filter((project) => {
+            let matches = true;
+            if (filters.bhks.length) {
+                // Assume project.bhk is a string or an array of strings.
+                const projectBHKs = Array.isArray(project.bhk) ? project.bhk : [project.bhk];
+                matches = matches && projectBHKs.some((bhk) => filters.bhks.includes(bhk));
+            }
+            if (filters.projectTypes.length) {
+                const types = Array.isArray(project.projectType) ? project.projectType : [project.projectType];
+                matches = matches && types.some((type) => filters.projectTypes.includes(type));
+            }
+            if (filters.locations.length) {
+                const locations = Array.isArray(project.localityNames) ? project.localityNames : [project.localityNames];
+                matches = matches && locations.some((loc) => filters.locations.includes(loc));
+            }
+            console.log('Project matches filters:', project.name, project.bhk,matches);
+            return matches;
+            });
+            }, [uniqueProjects, filters]);
+
+            useEffect(() => {
+                if (!mapInstance) return;
+                // Clear all existing markers.
+                console.log("Markers Count before clearing:", markersRef.current.length);
+                console.log("Filtered Projects Count:", filteredProjects.length);
+                
+                clearAllMarkers();
+                console.log("Markers Count after clearing:", markersRef.current.length);
+            
+                // Add new markers for each filtered project.
+                filteredProjects.forEach((project) => {
+
+                  const markerId = project.rera;
+                  const { lat, lng } = parseCoordinates(project.coordinates);
+
+                  if (markerPositionsRef.current.has(markerId)) return;
+
+                  const marker = new window.google.maps.marker.AdvancedMarkerElement({
+                    map: mapInstance,
+                    position: { lat, lng },
+                    title: project.rera,
+                  });
+                  marker.addListener("click", () => {
+                    console.log("Marker clicked:", project.rera);
+                    setSelectedProject(project);
+                  });
+                  markersRef.current.push(marker);
+                  markerPositionsRef.current.add(markerId);
+                });
+                console.log("Markers Count after adding:", markersRef.current.length);
+              }, [filteredProjects, mapInstance]);
         
 
     return (
@@ -213,7 +228,9 @@ const MapContainer: React.FC = () => {
           )}
 
           <MapDrawer 
-            projects={uniqueProjects || []} 
+            projects={filteredProjects || []} 
+            filters={filters}
+            onFiltersChange={setFilters}
             onProjectSelect={(project) => setSelectedProject(project)}
             />
         </div>
