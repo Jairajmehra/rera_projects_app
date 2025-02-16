@@ -27,7 +27,7 @@ export default function RootLayout({children,}: Readonly<
   
     <html lang="en">
 
-<head>
+    <head>
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"
@@ -36,9 +36,6 @@ export default function RootLayout({children,}: Readonly<
         {/* Use "default" so that the status bar area shows your background color */}
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <QueryProvider>
         {children}
