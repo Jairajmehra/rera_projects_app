@@ -2,69 +2,88 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { Filters } from '../app/map/page';
 
-export default function Navbar() {
+interface NavbarProps {
+  filters: Filters;
+  onFiltersChange: (filters: Filters) => void;
+}
+
+export default function Navbar({ filters, onFiltersChange }: NavbarProps) {
+  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const availableBHKs = ['BHK 1', 'BHK 2', 'BHK 3', 'BHK 4'];
+  const availableProjectTypes = ['Residential', 'Commercial'];
+  const availableLocations = ['Thaltej', 'Gota', 'Prahladnagar', 'Bopal', 'Satellite'];
+
   return (
-    <nav className="bg-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between h-16">
-          {/* Logo/Brand */}
-          <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold">
-              Your Brand
-            </Link>
+    <nav className="bg-white shadow-lg p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* STEP 1: Remove brand or logo references */}
+        {/* STEP 2: Render filters in navbar */}
+        
+        <div className="flex flex-wrap items-center">
+          {/* BHK Filter */}
+          <div className="mr-8">
+            <span className="font-semibold">BHK: </span>
+            {availableBHKs.map(bhk => (
+              <label key={bhk} className="ml-2">
+                <input
+                  type="checkbox"
+                  checked={filters.bhks.includes(bhk)}
+                  onChange={() => {
+                    const bhks = filters.bhks.includes(bhk)
+                      ? filters.bhks.filter(v => v !== bhk)
+                      : [...filters.bhks, bhk];
+                    onFiltersChange({ ...filters, bhks });
+                  }}
+                />
+                {" "}{bhk}
+              </label>
+            ))}
           </div>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-4">
-            <button className="px-4 py-2 text-gray-700 hover:text-gray-900">Button 1</button>
-            <button className="px-4 py-2 text-gray-700 hover:text-gray-900">Button 2</button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-              Primary Button
-            </button>
+          {/* Project Type Filter */}
+          <div className="mr-8">
+            <span className="font-semibold">Project Type: </span>
+            {availableProjectTypes.map(pt => (
+              <label key={pt} className="ml-2">
+                <input
+                  type="checkbox"
+                  checked={filters.projectTypes.includes(pt)}
+                  onChange={() => {
+                    const projectTypes = filters.projectTypes.includes(pt)
+                      ? filters.projectTypes.filter(v => v !== pt)
+                      : [...filters.projectTypes, pt];
+                    onFiltersChange({ ...filters, projectTypes });
+                  }}
+                />
+                {" "}{pt}
+              </label>
+            ))}
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 hover:text-gray-900"
-            >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {isMenuOpen ? (
-                  <path d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
+          {/* Location Filter */}
+          <div>
+            <span className="font-semibold">Location: </span>
+            {availableLocations.map(loc => (
+              <label key={loc} className="ml-2">
+                <input
+                  type="checkbox"
+                  checked={filters.locations.includes(loc)}
+                  onChange={() => {
+                    const locations = filters.locations.includes(loc)
+                      ? filters.locations.filter(v => v !== loc)
+                      : [...filters.locations, loc];
+                    onFiltersChange({ ...filters, locations });
+                  }}
+                />
+                {" "}{loc}
+              </label>
+            ))}
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden pb-4">
-            <button className="block w-full px-4 py-2 text-gray-700 hover:text-gray-900">
-              Button 1
-            </button>
-            <button className="block w-full px-4 py-2 text-gray-700 hover:text-gray-900">
-              Button 2
-            </button>
-            <button className="block w-full px-4 py-2 mt-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-              Primary Button
-            </button>
-          </div>
-        )}
       </div>
     </nav>
   );

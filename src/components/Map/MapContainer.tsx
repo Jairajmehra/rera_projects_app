@@ -5,21 +5,20 @@ import debounce from 'lodash.debounce';
 import ResidentialPopUpCard from "../ResidentialPopUpCard";
 import MapDrawer from "../MapDrawer";
 import { parseCoordinates, getExtendedBounds } from "../../utils/Utils";
-
+import { Filters } from "../../app/map/page";
 
 declare global {
     interface Window {
       google: typeof google;
     }}
   
-  // Define our Filters interface.
-export interface Filters {
-    bhks: string[];
-    projectTypes: string[];
-    locations: string[];
-  }
+interface MapContainerProps {
+      filters: Filters;
+      onFiltersChange: (filters: Filters) => void; // if needed
+    }
 
-const MapContainer: React.FC = () => {
+
+const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange }) => {
 
     // Add a Set to track unique markers by rera number
     const markerPositionsRef = useRef(new Set<string>());
@@ -31,11 +30,11 @@ const MapContainer: React.FC = () => {
     const [bounds, setBounds] = useState<google.maps.LatLngBounds | null>(null);
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
 
-    // Add filter state (initially no filter is applied).
-    const [filters, setFilters] = useState<Filters>({
-        bhks: [],
-        projectTypes: [],
-        locations: []});
+    // // Add filter state (initially no filter is applied).
+    // const [filters, setFilters] = useState<Filters>({
+    //     bhks: [],
+    //     projectTypes: [],
+    //     locations: []});
 
     // Utility function to close the pop up card
     const handleCloseCard = useCallback(() => {
@@ -224,7 +223,7 @@ const MapContainer: React.FC = () => {
           <MapDrawer 
             projects={filteredProjects || []} 
             filters={filters}
-            onFiltersChange={setFilters}
+            onFiltersChange={onFiltersChange}
             onProjectSelect={(project) => setSelectedProject(project)}
             />
         </div>
