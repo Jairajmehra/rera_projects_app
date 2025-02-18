@@ -185,15 +185,9 @@ const MapContainer: React.FC = () => {
             useEffect(() => {
                 if (!mapInstance) return;
                 // Clear all existing markers.
-                console.log("Markers Count before clearing:", markersRef.current.length);
-                console.log("Filtered Projects Count:", filteredProjects.length);
-                
                 clearAllMarkers();
-                console.log("Markers Count after clearing:", markersRef.current.length);
-            
                 // Add new markers for each filtered project.
                 filteredProjects.forEach((project) => {
-
                   const markerId = project.rera;
                   const { lat, lng } = parseCoordinates(project.coordinates);
 
