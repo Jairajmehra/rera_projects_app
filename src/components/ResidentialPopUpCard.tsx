@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { ResidentialProject } from '@/services/residentialProjectService';
+import { ResidentialProperty } from '../services/residentialPropertyService';
 
 interface ResidentialPopUpCardProps {
-    project: ResidentialProject;
+    property: ResidentialProperty;
     onClose: () => void;
 }
 
-const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({project, onClose}) => {
+const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({property, onClose}) => {
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
@@ -42,7 +42,7 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({project, onC
                 marginBottom: "16px"
 
             }}>
-                <img src={project.coverPhotoLink} alt={project.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={property.photos[0]} alt={property.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 {/* Add project image here if available */}
             </div>
 
@@ -53,12 +53,12 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({project, onC
                     margin: "0 0 4px 0",
                     fontSize: "18px",
                     fontWeight: "600"
-                }}>{project.name}</h3>
+                }}>{property.name}</h3>
                 <p style={{
                     margin: "0 0 16px 0",
                     color: "#666",
                     fontSize: "14px"
-                }}>{project.localityNames}</p>
+                }}>{property.locality}</p>
 
                 {/* Configurations Section */}
                 <div style={{ marginBottom: "16px" }}>
@@ -68,7 +68,7 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({project, onC
                         color: "#666"
                     }}>Configurations</p>
                     <div style={{ display: "flex", gap: "8px" }}>
-                        {(Array.isArray(project.bhk) ? project.bhk : [project.bhk])?.map((config, index) => (
+                        {(Array.isArray(property.bhk) ? property.bhk : [property.bhk])?.map((config, index) => (
                             <span key={index} style={{
                                 padding: "4px 12px",
                                 backgroundColor: "#E3F2FD",
@@ -90,7 +90,7 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({project, onC
                         color: "#666"
                     }}>Project Type</p>
                     <div style={{ display: "flex", gap: "8px" }}>
-                        {(Array.isArray(project.projectType) ? project.projectType : [project.projectType])?.map((type, index) => (
+                        {(Array.isArray(property.propertyType) ? property.propertyType : [property.propertyType])?.map((type, index) => (
                             <span key={index} style={{
                                 padding: "4px 12px",
                                 backgroundColor: "#FFF8E1",
@@ -115,7 +115,7 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({project, onC
                         fontSize: "16px",
                         fontWeight: "600"
                     }}>
-                        ₹{project.price?.value}
+                        ₹{property.price}
                     </p>
                     <span style={{
                         padding: "4px 12px",
@@ -124,7 +124,7 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({project, onC
                         fontSize: "14px",
                         color: "#424242"
                     }}>
-                        {project.projectStatus}
+                        {property.propertyType}
                     </span>
                 </div>
             </div>

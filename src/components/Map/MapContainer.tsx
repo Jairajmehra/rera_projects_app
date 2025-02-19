@@ -1,8 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import useResidentialProjects from "../../hooks/useResidentialProjects";
-import { ResidentialProject } from "../../services/residentialProjectService";
-import debounce from 'lodash.debounce';
+
+// Components for properties
 import ResidentialPopUpCard from "../ResidentialPopUpCard";
+import useResidentialProperties from "../../hooks/useResidentialProperties";
+import { ResidentialProperty } from "../../services/residentialPropertyService";
+
+import debounce from 'lodash.debounce';
 import MapDrawer from "../MapDrawer";
 import { parseCoordinates, getExtendedBounds } from "../../utils/Utils";
 import { Filters } from "../../app/map/page";
@@ -26,19 +29,14 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
     const mapRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   
-    const [selectedProject, setSelectedProject] = useState<ResidentialProject | null>(null);
+    const [selectedProperty, setSelectedProperty] = useState<ResidentialProperty | null>(null);
     const [bounds, setBounds] = useState<google.maps.LatLngBounds | null>(null);
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
 
-    // // Add filter state (initially no filter is applied).
-    // const [filters, setFilters] = useState<Filters>({
-    //     bhks: [],
-    //     projectTypes: [],
-    //     locations: []});
 
     // Utility function to close the pop up card
     const handleCloseCard = useCallback(() => {
-        setSelectedProject(null);
+        setSelectedProperty(null);
     }, []);
 
     function clearAllMarkers() {
@@ -81,7 +79,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
   };
 
   // Fetch the projects from the API using our custom hook when the bounds change
-    const { data, isLoading } = useResidentialProjects({page: 1, limit: 200, offset: 0,
+    const { data, isLoading } = useResidentialProperties({page: 1, limit: 200, offset: 0,
         bounds: bounds? {
             north: bounds.getNorthEast().lat(),
             south: bounds.getSouthWest().lat(),
@@ -89,6 +87,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
             west: bounds.getSouthWest().lng(),
         } : undefined,
     });
+    console.log('API Response:', data);
 
     // Utility function to set the new bounds waits for 500ms before setting the bounds
     const onBoundsChange = useCallback(debounce((map: google.maps.Map) => 
@@ -148,64 +147,82 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
             removeMarkersOutsideExtendedBounds();
         }, [mapInstance, bounds]);
 
-        const uniqueProjects = useMemo(() => 
+        const uniqueProperties = useMemo(() => 
         {
-            const uniqueMap = new Map<string, ResidentialProject>();
-            data?.projects?.forEach((project) => {
-              uniqueMap.set(project.rera, project);
+            const uniqueMap = new Map<string, ResidentialProperty>();
+            data?.properties?.forEach((property) => {
+              uniqueMap.set(property.airtable_id, property);
             });
             return Array.from(uniqueMap.values());
-          }, [data?.projects]);
+          }, [data?.properties]);
 
           // Apply the filters to the unique projects.
-        const filteredProjects = useMemo(() => {
-            console.log('Filtering projects with filters:', filters);
-            console.log('Unique projects:', uniqueProjects);
-            return uniqueProjects.filter((project) => {
+        const filteredProperties = useMemo(() => {
+            console.log('Filtering Properties with filters:', filters);
+            console.log('Unique Properties:', uniqueProperties);
+            return uniqueProperties.filter((property) => {
             let matches = true;
             if (filters.bhks.length) {
-                // Assume project.bhk is a string or an array of strings.
-                const projectBHKs = Array.isArray(project.bhk) ? project.bhk : [project.bhk];
-                matches = matches && projectBHKs.some((bhk) => filters.bhks.includes(bhk));
+                // Assume property.bhk is a string or an array of strings.
+                const propertyBHKs = Array.isArray(property.bhk) ? property.bhk : [property.bhk];
+                matches = matches && propertyBHKs.some((bhk) => filters.bhks.includes(bhk));
             }
             if (filters.projectTypes.length) {
-                const types = Array.isArray(project.projectType) ? project.projectType : [project.projectType];
+                const types = Array.isArray(property.propertyType) ? property.propertyType : [property.propertyType];
                 matches = matches && types.some((type) => filters.projectTypes.includes(type));
             }
             if (filters.locations.length) {
-                const locations = Array.isArray(project.localityNames) ? project.localityNames : [project.localityNames];
+                const locations = Array.isArray(property.locality) ? property.locality : [property.locality];
                 matches = matches && locations.some((loc) => filters.locations.includes(loc));
             }
-            console.log('Project matches filters:', project.name, project.bhk,matches);
+            console.log('Property matches filters:', property.name, property.bhk,matches);
             return matches;
             });
-            }, [uniqueProjects, filters]);
+            }, [uniqueProperties, filters]);
+
+
+            const validProperties = useMemo(() => {
+              console.log('Validating properties:', filteredProperties);
+              const invalid: string[] = [];
+              return filteredProperties.filter(property => {
+                  if (!property.coordinates){
+                    invalid.push(`${property.name} ${property.coordinates} (${property.airtable_id}): No coordinates`);
+                    return false;
+                  } 
+                  const coords = parseCoordinates(property.coordinates);
+                  if (!coords || isNaN(coords.lat) || isNaN(coords.lng)){
+                    invalid.push(`${property.name} ${property.coordinates} (${property.airtable_id}): Invalid coordinates`);
+                    return false;
+                  }
+                  return true;
+              });
+          }, [filteredProperties]);
 
             useEffect(() => {
                 if (!mapInstance) return;
                 // Clear all existing markers.
                 clearAllMarkers();
                 // Add new markers for each filtered project.
-                filteredProjects.forEach((project) => {
-                  const markerId = project.rera;
-                  const { lat, lng } = parseCoordinates(project.coordinates);
+                validProperties.forEach((property) => {
+                  const markerId = property.airtable_id;
+                  const { lat, lng } = parseCoordinates(property.coordinates);
 
                   if (markerPositionsRef.current.has(markerId)) return;
 
                   const marker = new window.google.maps.marker.AdvancedMarkerElement({
                     map: mapInstance,
                     position: { lat, lng },
-                    title: project.rera,
+                    title: property.airtable_id,
                   });
                   marker.addListener("click", () => {
-                    console.log("Marker clicked:", project.rera);
-                    setSelectedProject(project);
+                    console.log("Marker clicked:", property.airtable_id);
+                    setSelectedProperty(property);
                   });
                   markersRef.current.push(marker);
                   markerPositionsRef.current.add(markerId);
                 });
                 console.log("Markers Count after adding:", markersRef.current.length);
-              }, [filteredProjects, mapInstance]);
+              }, [filteredProperties, mapInstance]);
         
 
     return (
@@ -213,18 +230,18 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
           {isLoading && <div className="loading-overlay">Loading...</div>}
           <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
-          {selectedProject && (
+          {selectedProperty && (
             <ResidentialPopUpCard 
-                project={selectedProject} 
+                property={selectedProperty} 
                 onClose={handleCloseCard}
             />
           )}
 
           <MapDrawer 
-            projects={filteredProjects || []} 
+            properties={filteredProperties || []} 
             filters={filters}
             onFiltersChange={onFiltersChange}
-            onProjectSelect={(project) => setSelectedProject(project)}
+            onPropertySelect={(property) => setSelectedProperty(property)}
             />
         </div>
       );
