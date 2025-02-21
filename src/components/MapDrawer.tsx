@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ResidentialPropertyCard from './ResidentialPropertyCard';
-import useViewport from './useViewport';
+import useViewport from '../utils/useViewport';
 import { Filters } from '../app/map/page';
 import { ResidentialProperty } from '../services/residentialPropertyService';
 import { CSSProperties } from 'react';

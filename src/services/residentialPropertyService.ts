@@ -42,7 +42,7 @@ export const fetchResidentialProperties = async ({ page = 1, limit = 50, offset 
 {
 
 const boundsParams = bounds ? `&minLat=${bounds.south}&maxLat=${bounds.north}&minLng=${bounds.west}&maxLng=${bounds.east}` : '';
-const api_call_url = `http://192.168.1.186:8094/residential_properties?page=${page}&limit=${limit}&offset=${offset}${boundsParams}`;
+const api_call_url = `http://192.168.29.3:8095/residential_properties?page=${page}&limit=${limit}&offset=${offset}${boundsParams}`;
 console.log('API call URL:', api_call_url);
 const res = await fetch(api_call_url);
 if (!res.ok) {

@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ResidentialPopUpCard from "../ResidentialPopUpCard";
 import useResidentialProperties from "../../hooks/useResidentialProperties";
 import { ResidentialProperty } from "../../services/residentialPropertyService";
-import useViewport from "../useViewport";
+import useViewport from "../../utils/useViewport";
 import debounce from 'lodash.debounce';
 import MapDrawer from "../MapDrawer";
 import { parseCoordinates, getExtendedBounds } from "../../utils/Utils";

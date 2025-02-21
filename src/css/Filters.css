@@ -1,0 +1,98 @@
+/* Shared styles for both mobile and desktop */
+.filter-section,
+.filter-group {
+  margin-bottom: 1.5rem;
+}
+
+.filter-section-title,
+.filter-label {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Mobile: Drawer styles */
+.filters-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease;
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.filters-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.filters-drawer {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 80%;
+  max-width: 400px;
+  background-color: white;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 50;
+  transition: transform 0.3s ease;
+  transform: translateX(100%);
+}
+
+.filters-drawer.open {
+  transform: translateX(0);
+}
+
+.filters-content {
+  padding: 1rem;
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.filters-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.filters-close {
+  padding: 0.5rem;
+  font-size: 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Desktop: Inline styles */
+.filters-inline {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+}

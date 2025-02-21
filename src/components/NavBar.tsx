@@ -1,89 +1,161 @@
+
+
 'use client';
 
 import { useState } from 'react';
-import { Filters } from '../app/map/page';
+import {Filters as FiltersType} from '../app/map/page';
 import useLocalities from '../hooks/useLocalities';
-import FilterDrawer from './FilterDrawer';
+import Filter from './Filters';
 import LocationSearch from './LocationSearch';
-import useViewport from './useViewport';
+import useViewport from '../utils/useViewport';
+
 
 interface NavbarProps {
-  filters: Filters;
-  onFiltersChange: (filters: Filters) => void;
+  filters: FiltersType;
+  onFiltersChange: (filters: FiltersType) => void;
 }
 
 export default function Navbar({ filters, onFiltersChange }: NavbarProps) {
-  
-  const { data: allLocalities = [], isLoading } = useLocalities();
+
+  const {data: allLocalities = [], isLoading} = useLocalities();
   const isMobile = useViewport(768);
-  const availableBHKs = ['BHK 1', 'BHK 2', 'BHK 3', 'BHK 4'];
-  const availableProjectTypes = ['Residential', 'Commercial'];
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [isLocationSearchOpen, setIsLocationSearchOpen] = useState(false);
 
   const handleLocalityChange = (newLocalities: string[]) => {
-    onFiltersChange({
-      ...filters,
-      locations: newLocalities
-    });
+    onFiltersChange({...filters, locations: newLocalities});
   };
 
-  if (isLoading) return <div>Loading localities...</div>;
+  if (isLoading) return <div className="navbar-loading">Loading localities...</div>;
 
-  
-
+  if (isMobile) {
     return (
       <>
-        <nav className="relative z-50 bg-white shadow-lg p-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            {/* Location Search Button */}
-            <button
-              onClick={() => setIsLocationSearchOpen(true)}
-              className="flex-1 text-left p-2 border rounded-lg text-gray-500"
-            >
-              {filters.locations.length 
-                ? `${filters.locations.length} locations selected`
-                : 'Search locations...'}
-            </button>
-    
-            {/* Filter Icon (Mobile Only) */}
-            {isMobile && (
-              <button 
+        <nav className="navbar">
+          <div className="navbar-content">
+            {/* Location Button */}
+            <div className="location-search-container">
+              <button
+                className="navbar-location-button"
+                onClick={() => setIsLocationSearchOpen(true)}
+              >
+                <div className="navbar-location-button-content">
+
+                  <span>
+                    {filters.locations.length
+                      ? `${filters.locations.length} locations selected`
+                      : 'Search locations...'}
+                  </span>
+                  {filters.locations.length > 0 && (
+                    <svg
+                      className="clear-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onFiltersChange({ ...filters, locations: [] });
+                      }}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  )}
+                </div>
+              </button>
+            </div>
+  
+            {/* Mobile Filter Button */}
+            <div className="mobile-filter-button-container">
+              <button
+                className="mobile-filter-button"
                 onClick={() => setIsFilterDrawerOpen(true)}
-                className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200"
                 aria-label="Open filters"
               >
-                <svg 
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2"
-                  className="text-gray-700"
-                >
-                  <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
+                <svg className="filter-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                 </svg>
               </button>
-            )}
-    
-            {/* Desktop Filters */}
-            {!isMobile && (
-              <div className="flex gap-4">
-                {/* Your existing desktop filters */}
-              </div>
-            )}
+            </div>
           </div>
+  
+          {/* Filter Drawer for Mobile */}
+          {isFilterDrawerOpen && (
+            <Filter
+              isOpen={isFilterDrawerOpen}
+              onClose={() => setIsFilterDrawerOpen(false)}
+              filters={filters}
+              onFiltersChange={onFiltersChange}
+            />
+          )}
+  
+          {/* Location Search Modal */}
+          {isLocationSearchOpen && (
+            <LocationSearch
+              localities={allLocalities}
+              selectedLocalities={filters.locations}
+              onSelect={(locations) => {
+                onFiltersChange({ ...filters, locations });
+                setIsLocationSearchOpen(false);
+              }}
+              onClose={() => setIsLocationSearchOpen(false)}
+            />
+          )}
         </nav>
-    
-        {/* Add these components */}
-        <FilterDrawer
-          isOpen={isFilterDrawerOpen}
-          onClose={() => setIsFilterDrawerOpen(false)}
-          filters={filters}
-          onFiltersChange={onFiltersChange}
-        />
-    
+      </>
+    );
+  }
+  return (
+    <>
+      <nav className="navbar">
+        <div className="filters-inline">
+          <div className="location-search-container">
+            <button
+              className="navbar-location-button"
+              onClick={() => setIsLocationSearchOpen(true)}
+            >
+              <div className="navbar-location-button-content">
+
+                <span>
+                  {filters.locations.length
+                    ? `${filters.locations.length} locations selected`
+                    : 'Search locations...'}
+                </span>
+                {filters.locations.length > 0 && (
+                  <svg
+                    className="clear-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onFiltersChange({ ...filters, locations: [] });
+                    }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                )}
+              </div>
+            </button>
+          </div>
+          
+          <div className="filter-section">
+            <Filter
+              filters={filters}
+              onFiltersChange={onFiltersChange}
+            />
+          </div>
+        </div>
+
         {isLocationSearchOpen && (
           <LocationSearch
             localities={allLocalities}
@@ -95,6 +167,7 @@ export default function Navbar({ filters, onFiltersChange }: NavbarProps) {
             onClose={() => setIsLocationSearchOpen(false)}
           />
         )}
-      </>
-    );
-}
+      </nav>
+    </>
+  );
+};
