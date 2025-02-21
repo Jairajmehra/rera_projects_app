@@ -76,7 +76,7 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({property, on
                                 fontSize: "14px",
                                 color: "#1976D2"
                             }}>
-                                {config} BHK
+                                {config}
                             </span>
                         ))}
                     </div>

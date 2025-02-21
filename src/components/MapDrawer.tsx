@@ -3,7 +3,7 @@ import ResidentialPropertyCard from './ResidentialPropertyCard';
 import useViewport from './useViewport';
 import { Filters } from '../app/map/page';
 import { ResidentialProperty } from '../services/residentialPropertyService';
-
+import { CSSProperties } from 'react';
 export type DrawerState = 'collapsed' | 'partial' | 'full';
 
 interface MapDrawerProps {
@@ -29,51 +29,62 @@ const MapDrawer: React.FC<MapDrawerProps> = ({ properties, onPropertySelect, fil
         }
     };
 
-      const drawerStyles = isMobile
-      ? {
-          height: drawerState === 'collapsed' ? '40px' 
-                 : drawerState === 'partial' ? '40%' 
-                 : '90%',
-          transition: 'height 0.3s',
-          width: '100%'
-        }
-      : {
-          height: '100%',
-          width: '400px',
-          right: 0,
-          top: 0
-        };
+    const getDrawerClassName = () => {
+      if (!isMobile) {
+          return 'h-full w-full bg-white shadow-lg';
+      }
+  
+      const baseClasses = 'drawerMobile bg-white shadow-lg';
+      const stateClass = 
+          drawerState === 'collapsed' ? 'drawerClosed' :
+          drawerState === 'partial' ? 'drawerPartial' : 
+          'drawerOpen';  // Changed from 'drawerOpen' to 'drawerFull'
+  
+      return `${baseClasses} ${stateClass}`;
+  };
 
-    return (
-        <div
-          style={drawerStyles}
-          className={`fixed bg-white shadow-lg overflow-hidden z-20 ${
-            isMobile ? "bottom-0 left-0 right-0" : "top-0"
-          }`}
-        >
-          {isMobile && (
-            <div className="p-2 border-b cursor-pointer" onClick={toggleDrawerState}>
-              <div className="w-12 h-1 bg-gray-400 rounded mx-auto"></div>
-            </div>
-          )}
-    
-          {/* Project list */}
-          {(!isMobile || drawerState !== "collapsed") && (
-            <div className="p-4 overflow-auto h-full">
-              <div className="space-y-4">
-                {properties.map((property) => (
-                  <ResidentialPropertyCard
-                    key={property.airtable_id}
-                    property={property}
-                    onClick={() => onPropertySelect(property)}
-                  />
-                ))}
-                {properties.length === 0 && <div>No properties match these filters.</div>}
-              </div>
-            </div>
-          )}
-        </div>
-      );
+  // NEW: Clearer control of when to show content
+const shouldShowContent = () => {
+  if (!isMobile) return true;
+  return drawerState !== 'collapsed';
+};
+
+return (
+  <div className={getDrawerClassName()}>
+      {/* Mobile drawer handle */}
+      {isMobile && (
+          <div 
+              className="h-10 flex items-center justify-center border-b cursor-pointer"
+              onClick={toggleDrawerState}
+          >
+              <div className="w-12 h-1 bg-gray-400 rounded" />
+          </div>
+      )}
+
+      {/* Drawer content */}
+      {shouldShowContent() && (
+                <div className="relative h-[calc(100%-2.5rem)]">
+                    <div className="absolute inset-0 p-4 overflow-auto">
+                        <div className="space-y-4">
+                            {properties.map((property) => (
+                                <ResidentialPropertyCard
+                                    key={property.airtable_id}
+                                    property={property}
+                                    onClick={() => onPropertySelect(property)}
+                                />
+                            ))}
+                            {properties.length === 0 && (
+                                <div>No properties match these filters.</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+  </div>
+);
+
+
+
 };
 
 export default MapDrawer;

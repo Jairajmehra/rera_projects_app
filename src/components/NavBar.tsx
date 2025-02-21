@@ -1,8 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { Filters } from '../app/map/page';
+import useLocalities from '../hooks/useLocalities';
+import FilterDrawer from './FilterDrawer';
+import LocationSearch from './LocationSearch';
+import useViewport from './useViewport';
 
 interface NavbarProps {
   filters: Filters;
@@ -11,80 +14,87 @@ interface NavbarProps {
 
 export default function Navbar({ filters, onFiltersChange }: NavbarProps) {
   
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const { data: allLocalities = [], isLoading } = useLocalities();
+  const isMobile = useViewport(768);
   const availableBHKs = ['BHK 1', 'BHK 2', 'BHK 3', 'BHK 4'];
   const availableProjectTypes = ['Residential', 'Commercial'];
-  const availableLocations = ['Thaltej', 'Gota', 'Prahladnagar', 'Bopal', 'Satellite'];
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const [isLocationSearchOpen, setIsLocationSearchOpen] = useState(false);
 
-  return (
-    <nav className="bg-white shadow-lg p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* STEP 1: Remove brand or logo references */}
-        {/* STEP 2: Render filters in navbar */}
-        
-        <div className="flex flex-wrap items-center">
-          {/* BHK Filter */}
-          <div className="mr-8">
-            <span className="font-semibold">BHK: </span>
-            {availableBHKs.map(bhk => (
-              <label key={bhk} className="ml-2">
-                <input
-                  type="checkbox"
-                  checked={filters.bhks.includes(bhk)}
-                  onChange={() => {
-                    const bhks = filters.bhks.includes(bhk)
-                      ? filters.bhks.filter(v => v !== bhk)
-                      : [...filters.bhks, bhk];
-                    onFiltersChange({ ...filters, bhks });
-                  }}
-                />
-                {" "}{bhk}
-              </label>
-            ))}
-          </div>
+  const handleLocalityChange = (newLocalities: string[]) => {
+    onFiltersChange({
+      ...filters,
+      locations: newLocalities
+    });
+  };
 
-          {/* Project Type Filter */}
-          <div className="mr-8">
-            <span className="font-semibold">Project Type: </span>
-            {availableProjectTypes.map(pt => (
-              <label key={pt} className="ml-2">
-                <input
-                  type="checkbox"
-                  checked={filters.projectTypes.includes(pt)}
-                  onChange={() => {
-                    const projectTypes = filters.projectTypes.includes(pt)
-                      ? filters.projectTypes.filter(v => v !== pt)
-                      : [...filters.projectTypes, pt];
-                    onFiltersChange({ ...filters, projectTypes });
-                  }}
-                />
-                {" "}{pt}
-              </label>
-            ))}
-          </div>
+  if (isLoading) return <div>Loading localities...</div>;
 
-          {/* Location Filter */}
-          <div>
-            <span className="font-semibold">Location: </span>
-            {availableLocations.map(loc => (
-              <label key={loc} className="ml-2">
-                <input
-                  type="checkbox"
-                  checked={filters.locations.includes(loc)}
-                  onChange={() => {
-                    const locations = filters.locations.includes(loc)
-                      ? filters.locations.filter(v => v !== loc)
-                      : [...filters.locations, loc];
-                    onFiltersChange({ ...filters, locations });
-                  }}
-                />
-                {" "}{loc}
-              </label>
-            ))}
+  
+
+    return (
+      <>
+        <nav className="relative z-50 bg-white shadow-lg p-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            {/* Location Search Button */}
+            <button
+              onClick={() => setIsLocationSearchOpen(true)}
+              className="flex-1 text-left p-2 border rounded-lg text-gray-500"
+            >
+              {filters.locations.length 
+                ? `${filters.locations.length} locations selected`
+                : 'Search locations...'}
+            </button>
+    
+            {/* Filter Icon (Mobile Only) */}
+            {isMobile && (
+              <button 
+                onClick={() => setIsFilterDrawerOpen(true)}
+                className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200"
+                aria-label="Open filters"
+              >
+                <svg 
+                  width="24" 
+                  height="24" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                  className="text-gray-700"
+                >
+                  <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
+                </svg>
+              </button>
+            )}
+    
+            {/* Desktop Filters */}
+            {!isMobile && (
+              <div className="flex gap-4">
+                {/* Your existing desktop filters */}
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-    </nav>
-  );
+        </nav>
+    
+        {/* Add these components */}
+        <FilterDrawer
+          isOpen={isFilterDrawerOpen}
+          onClose={() => setIsFilterDrawerOpen(false)}
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+        />
+    
+        {isLocationSearchOpen && (
+          <LocationSearch
+            localities={allLocalities}
+            selectedLocalities={filters.locations}
+            onSelect={(locations) => {
+              onFiltersChange({ ...filters, locations });
+              setIsLocationSearchOpen(false);
+            }}
+            onClose={() => setIsLocationSearchOpen(false)}
+          />
+        )}
+      </>
+    );
 }

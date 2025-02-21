@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ResidentialPopUpCard from "../ResidentialPopUpCard";
 import useResidentialProperties from "../../hooks/useResidentialProperties";
 import { ResidentialProperty } from "../../services/residentialPropertyService";
-
+import useViewport from "../useViewport";
 import debounce from 'lodash.debounce';
 import MapDrawer from "../MapDrawer";
 import { parseCoordinates, getExtendedBounds } from "../../utils/Utils";
@@ -32,7 +32,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
     const [selectedProperty, setSelectedProperty] = useState<ResidentialProperty | null>(null);
     const [bounds, setBounds] = useState<google.maps.LatLngBounds | null>(null);
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
-
+    const isMobile = useViewport(768);
 
     // Utility function to close the pop up card
     const handleCloseCard = useCallback(() => {
@@ -225,26 +225,60 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
               }, [filteredProperties, mapInstance]);
         
 
-    return (
-        <div style={{ width: "100%", height: "100%", position: "relative" }}>
-          {isLoading && <div className="loading-overlay">Loading...</div>}
-          <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+//     return (
+//           <div className="w-full h-full relative">
+//           {isLoading && <div className="loading-overlay">Loading...</div>}
+//           <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
-          {selectedProperty && (
-            <ResidentialPopUpCard 
-                property={selectedProperty} 
-                onClose={handleCloseCard}
-            />
-          )}
+//           {selectedProperty && (
+//             <ResidentialPopUpCard 
+//                 property={selectedProperty} 
+//                 onClose={handleCloseCard}
+//             />
+//           )}
 
-          <MapDrawer 
-            properties={filteredProperties || []} 
-            filters={filters}
-            onFiltersChange={onFiltersChange}
-            onPropertySelect={(property) => setSelectedProperty(property)}
-            />
-        </div>
-      );
+//           <MapDrawer 
+//             properties={filteredProperties || []} 
+//             filters={filters}
+//             onFiltersChange={onFiltersChange}
+//             onPropertySelect={(property) => setSelectedProperty(property)}
+//             />
+//         </div>
+
+//       );
+// }
+
+return (
+  <div className="w-full h-full relative">
+    {isLoading && <div className="loading-overlay">Loading...</div>}
+
+    {selectedProperty && (
+      <ResidentialPopUpCard 
+        property={selectedProperty} 
+        onClose={handleCloseCard}
+      />
+    )}
+
+    {/* Parent container for map and drawer */}
+    <div className={isMobile ? "mapContainerMobile" : "mapContainerDesktop"}>
+      
+      {/* Map container */}
+      <div ref={mapRef} className={isMobile ? "w-full h-full" : "mapSection"}>
+        {/* The map will render here */}
+      </div>
+      
+      {/* Drawer container */}
+      <div className={isMobile ? "w-full" : "drawerSection"}>
+        <MapDrawer 
+          properties={filteredProperties || []} 
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          onPropertySelect={(property) => setSelectedProperty(property)}
+        />
+      </div>
+    </div>
+  </div>
+);
 }
 
 export default MapContainer;

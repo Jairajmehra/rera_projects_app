@@ -11,6 +11,13 @@
   --sar: env(safe-area-inset-right);
 }
 
+
+@layer base {
+  :root {
+    --navbar-height: 64px;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -43,7 +50,38 @@ html {
   overflow: hidden;
   padding-top: var(--sat);
   background-color: #fff;
+}
+.navbar {
+  height: 64px;         /* Fixed height */
+  flex-shrink: 0;       /* Prevents the navbar from shrinking */
+  display: flex;        /* Enable flexbox layout */
+  flex-direction: row;  /* Arrange child elements in a row */
+}
 
+.mainpage {
+  height: 100vh;       /* Full screen height */
+  width: 100%;         /* Full width */
+  display: flex;       /* Enable flex layout */
+  flex-direction: column; /* Stack children in a column */
+}
+
+
+.mapContainerDesktop {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.mapContainerMobile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -51,3 +89,48 @@ html {
     background-color: #242424;
   }
 }
+
+.mapSection {
+  width: 60%;
+  height: 100%;
+}
+
+.drawerSection {
+  width: 40%;
+  height: 100%;
+}
+
+/* Mobile Layout */
+.mapContainerMobile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  position: relative;  /* For absolute positioning of drawer */
+}
+
+/* Mobile Drawer States */
+.drawerMobile {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  transform: translate3d(0, 0, 0); /* Force GPU acceleration */
+  will-change: transform, height; /* Optimize animations */
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drawerClosed {
+  height: 40px;  /* Handle height */
+}
+
+.drawerPartial {
+  height: 40%;
+}
+
+.drawerOpen {
+  height: 90%;
+}
+
+
