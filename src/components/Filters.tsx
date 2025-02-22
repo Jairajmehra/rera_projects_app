@@ -1,85 +1,105 @@
-import React from 'react';
-import '../css/Filters.css';
-import {Filters as FiltersType} from '../app/map/page';
-import useViewport from '../utils/useViewport';
-import '../css/Filters.css';
+import React, { useState, useEffect } from 'react';
 import {availableBHKs} from '../utils/filterOptions';
+import {Filters as FiltersType} from '../app/map/page';
+import {FilterSearch} from './UniversalFilterComponent';
+import useViewport from '../utils/useViewport';
 
 interface FiltersProps {
-    isOpen?: boolean;
-    onClose?: () => void;
-    filters: FiltersType;
-    onFiltersChange: (filters: FiltersType) => void;
+  filters: FiltersType;
+  onFiltersChange: (filters: FiltersType) => void;
 }
 
+const FilterIcon = () => (
+  <svg
+    className="h-6 w-6 text-gray-600"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+    />
+  </svg>
+);
 
-const Filter: React.FC<FiltersProps> = ({isOpen=false, onClose = () => {}, filters, onFiltersChange}) => {
+export default function Filters({ filters, onFiltersChange}: FiltersProps) 
+{
 
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const isMobile = useViewport(768);
+  const [isBHKFilterOpen, setIsBHKFilterOpen] = useState(false);
 
-    const isMobile = useViewport(768);
-
-    const handleBhkChange = (bhk: string) => {
-        const bhks = filters.bhks.includes(bhk)
-        ? filters.bhks.filter((v) => v !== bhk)
-        : [...filters.bhks, bhk];
-        onFiltersChange({...filters, bhks:bhks});
+  // Handle escape key to close drawer
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsDrawerOpen(false);
+      }
     };
-    
-    if (isMobile)
-    {
-        return (
-            <>
-              <div
-                className={`filters-backdrop ${isOpen ? 'open' : ''}`}
-                onClick={onClose}
-              />
-              <div className={`filters-drawer ${isOpen ? 'open' : ''}`}>
-                <div className="filters-content">
-                  <div className="filters-header">
-                    <h2 className="filters-title">Filters</h2>
-                    <button onClick={onClose} className="filters-close">
-                      ✕
-                    </button>
-                  </div>
-                  <div className="filter-section">
-                    <h3 className="filter-section-title">BHK</h3>
-                    <div className="filter-options">
-                      {availableBHKs.map((bhk) => (
-                        <label key={bhk} className="filter-option">
-                          <input
-                            type="checkbox"
-                            checked={filters.bhks.includes(bhk)}
-                            onChange={() => handleBhkChange(bhk)}
-                          />
-                          {bhk}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
-          );
+    if (isDrawerOpen) {
+      document.addEventListener('keydown', handleKeyDown);
     }
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isDrawerOpen]);
+
+  // Handle BHK change
+  const handleBHKChange = (newBHKs: string[]) => {
+    onFiltersChange({...filters, bhks: newBHKs});
+  };
+
+  if (isMobile) 
+  {
     return (
-        <div className="filters-inline">
-          <div className="filter-group">
-            <label className="filter-label">BHK</label>
-            <div className="filter-options">
-              {availableBHKs.map((bhk) => (
-                <label key={bhk} className="filter-option">
-                  <input
-                    type="checkbox"
-                    checked={filters.bhks.includes(bhk)}
-                    onChange={() => handleBhkChange(bhk)}
-                  />
-                  {bhk}
-                </label>
-              ))}
+      <>
+        {/* Filter Icon to open drawer on mobile */}
+        <button onClick={() => setIsDrawerOpen(true)} className="p-2" aria-label="Open filters">
+          <FilterIcon />
+        </button>
+
+        {/* Filter Drawer */}
+        {isDrawerOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setIsDrawerOpen(false)}>
+            <div 
+              className={`fixed right-0 top-0 h-full w-64 bg-white p-4 shadow-lg transform transition-transform duration-300 ease-in-out ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+            >
+              <h2 className="text-lg font-bold mb-4">Filters</h2>
+              <FilterSearch
+                label="BHK"
+                FilterOptions={availableBHKs}
+                selectedFilters={filters.bhks}
+                onSelect={handleBHKChange}
+                isOpen={isBHKFilterOpen}
+                setIsOpen={setIsBHKFilterOpen}
+              />
+              {/* <button
+                onClick={() => setIsDrawerOpen(false)}
+                className="mt-4 p-2 bg-gray-200 rounded w-full text-gray-700"
+              >
+                Close
+              </button> */}
             </div>
           </div>
-        </div>
-      );
-};
+        )}
+      </>
+    );
+  }
 
-export default Filter;
+  return (
+    <div>
+      <FilterSearch
+        label="BHK"
+        FilterOptions={availableBHKs}
+        selectedFilters={filters.bhks}
+        onSelect={handleBHKChange}
+        isOpen={isBHKFilterOpen}
+        setIsOpen={setIsBHKFilterOpen}
+      />
+    </div>
+  );
+}

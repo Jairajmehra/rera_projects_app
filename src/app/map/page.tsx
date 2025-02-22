@@ -12,11 +12,7 @@ export interface Filters {
 
 const MapPage: React.FC = () => {
     // STEP 1: Create filters in MapPage
-  const [filters, setFilters] = useState<Filters>({
-    bhks: [],
-    projectTypes: [],
-    locations: []
-  });
+  const [filters, setFilters] = useState<Filters>({bhks: [], projectTypes: [],locations: []});
 
     return (
 

@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchLocalities } from '../services/fetchLocalitiesService';
 
 
-
 const useLocalities = () => {
 
     return useQuery<string[], Error>({

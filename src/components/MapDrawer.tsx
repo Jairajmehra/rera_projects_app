@@ -63,9 +63,10 @@ return (
 
       {/* Drawer content */}
       {shouldShowContent() && (
+
                 <div className="relative h-[calc(100%-2.5rem)]">
                     <div className="absolute inset-0 p-4 overflow-auto">
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {properties.map((property) => (
                                 <ResidentialPropertyCard
                                     key={property.airtable_id}
@@ -79,7 +80,8 @@ return (
                         </div>
                     </div>
                 </div>
-            )}
+
+      )}
   </div>
 );
 
