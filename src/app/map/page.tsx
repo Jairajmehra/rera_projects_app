@@ -6,13 +6,16 @@ import Navbar from "@/components/NavBar";
 // Define Filters interface if you haven't already:
 export interface Filters {
     bhks: string[];
-    projectTypes: string[];
+    propertyType: string[];
     locations: string[];
+    transactionType: string[];
+    priceMin: number;
+    priceMax: number;
   }
 
 const MapPage: React.FC = () => {
     // STEP 1: Create filters in MapPage
-  const [filters, setFilters] = useState<Filters>({bhks: [], projectTypes: [],locations: []});
+  const [filters, setFilters] = useState<Filters>({bhks: [], propertyType: [],locations: [], transactionType: [], priceMin: 0, priceMax: 0});
 
     return (
 

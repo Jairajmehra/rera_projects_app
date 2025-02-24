@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchResidentialProperties, ResidentialPropertiesApiResponse } from '../services/residentialPropertyService';
+import { Filters } from '../app/map/page';
 
 //const API_URL = 'https://test-vision-api-389008.el.r.appspot.com';
 
@@ -13,19 +14,30 @@ interface UseResidentialPropertiesApiParams {
         east: number;
         west: number;
   }
+  filters?: Filters;
 }
 
-const useResidentialProperties = ({page=1, limit=100, offset=0, bounds}: UseResidentialPropertiesApiParams) => {
+
+const useResidentialProperties = ({page = 1, limit = 200, offset = 0, bounds, filters}: UseResidentialPropertiesApiParams) => {
 
     return useQuery<ResidentialPropertiesApiResponse, Error>({
-        queryKey: ['residential-properties', page, limit, offset,
-            bounds ? `&north=${bounds.north}&south=${bounds.south}&east=${bounds.east}&west=${bounds.west}` : ''
-        ],
-        queryFn: () => fetchResidentialProperties({page, limit, offset, bounds}),
-        placeholderData: keepPreviousData => keepPreviousData,
-        staleTime: 1000 * 60 * 10,
+      queryKey: ['residentialProperties', bounds, filters, page, limit, offset],
+      queryFn: () => fetchResidentialProperties({
+        params: {
+            page,
+            limit,
+            offset,
+            bounds,
+            bhks: filters?.bhks,
+            locality: filters?.locations,
+            propertyType: filters?.propertyType,
+            transactionType: filters?.transactionType,
+            priceMin: filters?.priceMin,
+            priceMax: filters?.priceMax,
+        }
+      }),
+      staleTime: 1000 * 60 * 5, // 5 minutes
     });
-
-};
+  };
 
 export default useResidentialProperties;

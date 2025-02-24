@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
 // Components for properties
 import ResidentialPopUpCard from "../ResidentialPopUpCard";
 import useResidentialProperties from "../../hooks/useResidentialProperties";
@@ -28,7 +27,6 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
 
     const mapRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
-  
     const [selectedProperty, setSelectedProperty] = useState<ResidentialProperty | null>(null);
     const [bounds, setBounds] = useState<google.maps.LatLngBounds | null>(null);
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
@@ -36,6 +34,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
 
     // Utility function to close the pop up card
     const handleCloseCard = useCallback(() => {
+        console.log('Closing card');
         setSelectedProperty(null);
     }, []);
 
@@ -52,12 +51,10 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
   const removeMarkersOutsideExtendedBounds = () => {
     
     if (!mapInstance) {
-        console.log("mapInstance is not available");
         return;
     }
     const currentBounds = mapInstance.getBounds();
     if (!currentBounds){
-        console.log("currentBounds is not available");
         return;
     } 
     // Extend viewport by 20% 
@@ -71,12 +68,13 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
       {
         marker.map = null;
         markerPositionsRef.current.delete(marker.title);
-        console.log('Marker removed:', marker.title);
+
         return false;
       }
       return true;
     });
   };
+
 
   // Fetch the projects from the API using our custom hook when the bounds change
     const { data, isLoading } = useResidentialProperties({page: 1, limit: 200, offset: 0,
@@ -86,22 +84,21 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
             east: bounds.getNorthEast().lng(),
             west: bounds.getSouthWest().lng(),
         } : undefined,
+        filters: filters,
     });
-    console.log('API Response:', data);
+    
 
     // Utility function to set the new bounds waits for 500ms before setting the bounds
     const onBoundsChange = useCallback(debounce((map: google.maps.Map) => 
     {
         const newBounds = map.getBounds();
             if (newBounds) {
-                console.log('Setting new bounds:', newBounds.toString());
                 setBounds(newBounds);
     }}, 500), []);
 
     useEffect(() => {
         if (!window.google) 
         {
-            console.log('Google is not available');
             const script = document.createElement('script');
             script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places,marker`;
             script.async = true;
@@ -141,6 +138,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
     };
 
 
+
         useEffect(() => 
         {
             if (!mapInstance || !bounds) return;
@@ -156,35 +154,10 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
             return Array.from(uniqueMap.values());
           }, [data?.properties]);
 
-          // Apply the filters to the unique projects.
-        const filteredProperties = useMemo(() => {
-            console.log('Filtering Properties with filters:', filters);
-            console.log('Unique Properties:', uniqueProperties);
-            return uniqueProperties.filter((property) => {
-            let matches = true;
-            if (filters.bhks.length) {
-                // Assume property.bhk is a string or an array of strings.
-                const propertyBHKs = Array.isArray(property.bhk) ? property.bhk : [property.bhk];
-                matches = matches && propertyBHKs.some((bhk) => filters.bhks.includes(bhk));
-            }
-            if (filters.projectTypes.length) {
-                const types = Array.isArray(property.propertyType) ? property.propertyType : [property.propertyType];
-                matches = matches && types.some((type) => filters.projectTypes.includes(type));
-            }
-            if (filters.locations.length) {
-                const locations = Array.isArray(property.locality) ? property.locality : [property.locality];
-                matches = matches && locations.some((loc) => filters.locations.includes(loc));
-            }
-            console.log('Property matches filters:', property.name, property.bhk,matches);
-            return matches;
-            });
-            }, [uniqueProperties, filters]);
-
-
             const validProperties = useMemo(() => {
-              console.log('Validating properties:', filteredProperties);
+              console.log('Validating properties:', uniqueProperties);
               const invalid: string[] = [];
-              return filteredProperties.filter(property => {
+              return uniqueProperties.filter(property => {
                   if (!property.coordinates){
                     invalid.push(`${property.name} ${property.coordinates} (${property.airtable_id}): No coordinates`);
                     return false;
@@ -196,12 +169,13 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
                   }
                   return true;
               });
-          }, [filteredProperties]);
+          }, [uniqueProperties]);
 
             useEffect(() => {
                 if (!mapInstance) return;
                 // Clear all existing markers.
                 clearAllMarkers();
+                console.log('Filters:', filters);
                 // Add new markers for each filtered project.
                 validProperties.forEach((property) => {
                   const markerId = property.airtable_id;
@@ -222,63 +196,77 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
                   markerPositionsRef.current.add(markerId);
                 });
                 console.log("Markers Count after adding:", markersRef.current.length);
-              }, [filteredProperties, mapInstance]);
+              }, [validProperties, mapInstance, filters]);
         
 
-//     return (
-//           <div className="w-full h-full relative">
-//           {isLoading && <div className="loading-overlay">Loading...</div>}
-//           <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
-//           {selectedProperty && (
-//             <ResidentialPopUpCard 
-//                 property={selectedProperty} 
-//                 onClose={handleCloseCard}
-//             />
-//           )}
 
-//           <MapDrawer 
-//             properties={filteredProperties || []} 
-//             filters={filters}
-//             onFiltersChange={onFiltersChange}
-//             onPropertySelect={(property) => setSelectedProperty(property)}
-//             />
-//         </div>
 
-//       );
-// }
-
-return (
-  <div className="w-full h-full relative">
-    {isLoading && <div className="loading-overlay">Loading...</div>}
-
-    {selectedProperty && (
-      <ResidentialPopUpCard 
-        property={selectedProperty} 
-        onClose={handleCloseCard}
-      />
-    )}
-
-    {/* Parent container for map and drawer */}
-    <div className={isMobile ? "mapContainerMobile" : "mapContainerDesktop"}>
+if (isMobile) 
+{
+  return (
+    <div className="w-full h-full relative">
       
-      {/* Map container */}
-      <div ref={mapRef} className={isMobile ? "w-full h-full" : "mapSection"}>
-        {/* The map will render here */}
-      </div>
-      
-      {/* Drawer container */}
-      <div className={isMobile ? "w-full" : "drawerSection"}>
-        <MapDrawer 
-          properties={filteredProperties || []} 
-          filters={filters}
-          onFiltersChange={onFiltersChange}
-          onPropertySelect={(property) => setSelectedProperty(property)}
+
+      {selectedProperty && (
+        <ResidentialPopUpCard 
+          property={selectedProperty} 
+          onClose={handleCloseCard}
         />
+      )}
+
+      {/* Parent container for map and drawer */}
+      <div className="flex flex-col w-full h-full relative overflow-hidden">
+        {/* Map container */}
+        <div ref={mapRef} className="w-full h-full">
+          {/* The map will render here */}
+        </div>
+        
+        {/* Drawer container */}
+        <div className="w-full">
+          <MapDrawer 
+            properties={validProperties || []} 
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+            onPropertySelect={(property) => setSelectedProperty(property)}
+          />
+        </div>
       </div>
     </div>
-  </div>
-);
-}
+  );
+} 
+  return (
+    <div className="w-full h-full relative">
+      {isLoading && <div className="loading-overlay">Loading...</div>}
+
+      {selectedProperty && (
+        <ResidentialPopUpCard 
+          property={selectedProperty}
+          onClose={handleCloseCard}
+        />
+      )}
+
+      {/* Parent container for map and drawer */}
+      <div className="flex flex-row w-full h-full relative overflow-hidden">
+        {/* Map container */}
+        <div ref={mapRef} className="w-[45%] h-full">
+          {/* The map will render here */}
+        </div>
+        
+        {/* Drawer container */}
+        <div className="w-[55%] h-full">
+          <MapDrawer 
+            properties={validProperties || []} 
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+            onPropertySelect={(property) => setSelectedProperty(property)}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+
+};
 
 export default MapContainer;

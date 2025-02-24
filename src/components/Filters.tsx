@@ -3,6 +3,8 @@ import {availableBHKs} from '../utils/filterOptions';
 import {Filters as FiltersType} from '../app/map/page';
 import {FilterSearch} from './UniversalFilterComponent';
 import useViewport from '../utils/useViewport';
+import { propertyTypes } from '../utils/filterOptions';
+import { transactionTypes } from '../utils/filterOptions';
 
 interface FiltersProps {
   filters: FiltersType;
@@ -31,7 +33,8 @@ export default function Filters({ filters, onFiltersChange}: FiltersProps)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isMobile = useViewport(768);
   const [isBHKFilterOpen, setIsBHKFilterOpen] = useState(false);
-
+  const [isPropertyTypeFilterOpen, setIsPropertyTypeFilterOpen] = useState(false);
+  const [isTransactionTypeFilterOpen, setIsTransactionTypeFilterOpen] = useState(false);
   // Handle escape key to close drawer
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -52,6 +55,16 @@ export default function Filters({ filters, onFiltersChange}: FiltersProps)
     onFiltersChange({...filters, bhks: newBHKs});
   };
 
+  // Handle Property Type change
+  const handlePropertyTypeChange = (newPropertyTypes: string[]) => {
+    onFiltersChange({...filters, propertyType: newPropertyTypes});
+  };
+
+  // Handle Transaction Type change
+  const handleTransactionTypeChange = (newTransactionTypes: string[]) => {
+    onFiltersChange({...filters, transactionType: newTransactionTypes});
+  };
+
   if (isMobile) 
   {
     return (
@@ -67,8 +80,9 @@ export default function Filters({ filters, onFiltersChange}: FiltersProps)
             <div 
               className={`fixed right-0 top-0 h-full w-64 bg-white p-4 shadow-lg transform transition-transform duration-300 ease-in-out ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
               onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
-            >
-              <h2 className="text-lg font-bold mb-4">Filters</h2>
+              >
+              <h2 className="text-lg font-bold mb-4 text-center text-gray-800">Filters</h2>
+              <div className="space-y-6">
               <FilterSearch
                 label="BHK"
                 FilterOptions={availableBHKs}
@@ -77,12 +91,23 @@ export default function Filters({ filters, onFiltersChange}: FiltersProps)
                 isOpen={isBHKFilterOpen}
                 setIsOpen={setIsBHKFilterOpen}
               />
-              {/* <button
-                onClick={() => setIsDrawerOpen(false)}
-                className="mt-4 p-2 bg-gray-200 rounded w-full text-gray-700"
-              >
-                Close
-              </button> */}
+              <FilterSearch
+                label="Property Type"
+                FilterOptions={propertyTypes}
+                selectedFilters={filters.propertyType}
+                onSelect={handlePropertyTypeChange}
+                isOpen={isPropertyTypeFilterOpen}
+                setIsOpen={setIsPropertyTypeFilterOpen}
+              />
+                <FilterSearch
+                label="Rent/Sale"
+                FilterOptions={transactionTypes}
+                selectedFilters={filters.transactionType}
+                onSelect={handleTransactionTypeChange}
+                isOpen={isTransactionTypeFilterOpen}
+                setIsOpen={setIsTransactionTypeFilterOpen}
+              />
+              </div>
             </div>
           </div>
         )}
@@ -91,15 +116,40 @@ export default function Filters({ filters, onFiltersChange}: FiltersProps)
   }
 
   return (
-    <div>
+    <>
+    <div className="flex flex-row w-full space-x-4">
+      <div className="flex flex-row w-1/3">
+        <FilterSearch
+          label="BHK"
+          FilterOptions={availableBHKs}
+          selectedFilters={filters.bhks}
+          onSelect={handleBHKChange}
+          isOpen={isBHKFilterOpen}
+          setIsOpen={setIsBHKFilterOpen}
+        />
+      </div>
+      <div className="flex flex-row w-1/3">
+        <FilterSearch
+          label="Property Type"
+          FilterOptions={propertyTypes}
+          selectedFilters={filters.propertyType}
+          onSelect={handlePropertyTypeChange}
+          isOpen={isPropertyTypeFilterOpen}
+          setIsOpen={setIsPropertyTypeFilterOpen}
+        />
+      </div>
+
+      <div className="flex flex-row w-1/3">
       <FilterSearch
-        label="BHK"
-        FilterOptions={availableBHKs}
-        selectedFilters={filters.bhks}
-        onSelect={handleBHKChange}
-        isOpen={isBHKFilterOpen}
-        setIsOpen={setIsBHKFilterOpen}
-      />
+          label="Rent/Sale"
+          FilterOptions={transactionTypes}
+          selectedFilters={filters.transactionType}
+          onSelect={handleTransactionTypeChange}
+          isOpen={isTransactionTypeFilterOpen}
+          setIsOpen={setIsTransactionTypeFilterOpen}
+        />
+      </div>
     </div>
+    </>
   );
 }

@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { ResidentialProperty } from '../services/residentialPropertyService';
+import useViewport from '../utils/useViewport';
 
 interface ResidentialPopUpCardProps {
     property: ResidentialProperty;
@@ -7,125 +8,73 @@ interface ResidentialPopUpCardProps {
 }
 
 const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({property, onClose}) => {
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(max-width: 480px)');
-        setIsMobile(mediaQuery.matches);
-        
-        const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-        mediaQuery.addEventListener('change', handler);
-        return () => mediaQuery.removeEventListener('change', handler);
-    }, []);
+    const isMobile = useViewport();
+    let coverImage = Array.isArray(property.photos) ? property.photos[0] : property.photos;
+    if (!coverImage)
+    {
+        coverImage = "/apartment.png";
+    }
+    if (isMobile) {
+        return (
+            <div className="flex flex-col absolute bottom-0 left-0 right-0 z-[9999] bg-white 
+                          max-h-[85vh] overflow-y-auto rounded-t-2xl shadow-lg">
+                {/* Close Button */}
+                <button 
+                    onClick={onClose} 
+                    className="absolute top-3 right-3 bg-gray-200 rounded-full p-2 z-10" 
+                    aria-label="Close"
+                >
+                    x
+                </button>
+                <img 
+                    src={coverImage} 
+                    alt={property.name} 
+                    className="w-full h-[40vh] object-cover"
+                />
+                <div className="flex flex-col p-4 space-y-4">
+                    <div className="flex flex-row justify-between items-center">
+                        <h3 className="text-xl font-bold">{property.price}</h3>
+                        <p className="text-sm text-gray-500">{property.bhk}</p>
+                        <p className="text-sm text-gray-500">{property.propertyType}</p>
+                    </div>
+                    <div className="flex flex-row justify-between items-center">
+                        <p className="text-sm text-gray-500">{property.transactionType}</p>
+                        <p className="text-sm text-gray-500">{property.condition}</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div style={{
-            position: "absolute",
-            bottom: "80px",
-            left: isMobile ? "12px" : "16px",
-            right: isMobile ? "12px" : "16px",
-            background: "#fff",
-            borderRadius: "16px",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-            width: "auto",
-            maxWidth: "400px",
-            margin: "0 auto",
-            overflow: "hidden",
-            marginBottom: "env(safe-area-inset-bottom, 16px)",
-            minWidth: "280px",
-        }}>
-            {/* Image Container */}
-            <div style={{
-                width: "100%",
-                height: "160px",
-                background: "#f0f0f0", // Placeholder color for image
-                marginBottom: "16px"
-
-            }}>
-                <img src={property.photos[0]} alt={property.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                {/* Add project image here if available */}
-            </div>
-
-            {/* Content Container */}
-            <div style={{ padding: "0 16px 16px" }}>
-                {/* Project Name and Locality */}
-                <h3 style={{
-                    margin: "0 0 4px 0",
-                    fontSize: "18px",
-                    fontWeight: "600"
-                }}>{property.name}</h3>
-                <p style={{
-                    margin: "0 0 16px 0",
-                    color: "#666",
-                    fontSize: "14px"
-                }}>{property.locality}</p>
-
-                {/* Configurations Section */}
-                <div style={{ marginBottom: "16px" }}>
-                    <p style={{
-                        margin: "0 0 8px 0",
-                        fontSize: "14px",
-                        color: "#666"
-                    }}>Configurations</p>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                        {(Array.isArray(property.bhk) ? property.bhk : [property.bhk])?.map((config, index) => (
-                            <span key={index} style={{
-                                padding: "4px 12px",
-                                backgroundColor: "#E3F2FD",
-                                borderRadius: "16px",
-                                fontSize: "14px",
-                                color: "#1976D2"
-                            }}>
-                                {config}
-                            </span>
-                        ))}
-                    </div>
+        <div 
+            className="absolute bottom-8 left-0 z-[9999] bg-white shadow-lg rounded-lg p-4 
+                       w-[400px] max-w-[90vw] max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+        >
+            <button 
+                onClick={(e) => {
+                    onClose();
+                }} 
+                className="absolute top-2 right-2 bg-gray-200 rounded-full p-1"
+                aria-label="Close"
+            >
+                X
+            </button>
+            <div className="flex flex-col">
+                <img 
+                    src={coverImage} 
+                    alt={property.name} 
+                    className="w-full h-48 object-cover mb-4"
+                />
+                <h3 className="text-lg font-bold">{property.price}</h3>
+                <div className="flex justify-between mt-2">
+                    <p className="text-sm text-gray-500">{property.bhk}</p>
+                    <p className="text-sm text-gray-500">{property.propertyType}</p>
                 </div>
-
-                {/* Project Type Section */}
-                <div style={{ marginBottom: "16px" }}>
-                    <p style={{
-                        margin: "0 0 8px 0",
-                        fontSize: "14px",
-                        color: "#666"
-                    }}>Project Type</p>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                        {(Array.isArray(property.propertyType) ? property.propertyType : [property.propertyType])?.map((type, index) => (
-                            <span key={index} style={{
-                                padding: "4px 12px",
-                                backgroundColor: "#FFF8E1",
-                                borderRadius: "16px",
-                                fontSize: "14px",
-                                color: "#FFA000"
-                            }}>
-                                {type}
-                            </span>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Price and Possession Status */}
-                <div style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center"
-                }}>
-                    <p style={{
-                        margin: 0,
-                        fontSize: "16px",
-                        fontWeight: "600"
-                    }}>
-                        ₹{property.price}
-                    </p>
-                    <span style={{
-                        padding: "4px 12px",
-                        backgroundColor: "#EEEEEE",
-                        borderRadius: "16px",
-                        fontSize: "14px",
-                        color: "#424242"
-                    }}>
-                        {property.propertyType}
-                    </span>
+                <div className="flex justify-between mt-2">
+                    <p className="text-sm text-gray-500">{property.transactionType}</p>
+                    <p className="text-sm text-gray-500">{property.condition}</p>
                 </div>
             </div>
         </div>

@@ -3,7 +3,6 @@ import ResidentialPropertyCard from './ResidentialPropertyCard';
 import useViewport from '../utils/useViewport';
 import { Filters } from '../app/map/page';
 import { ResidentialProperty } from '../services/residentialPropertyService';
-import { CSSProperties } from 'react';
 export type DrawerState = 'collapsed' | 'partial' | 'full';
 
 interface MapDrawerProps {
@@ -84,8 +83,6 @@ return (
       )}
   </div>
 );
-
-
 
 };
 

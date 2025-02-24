@@ -14,7 +14,6 @@ interface NavbarProps {
 export default function Navbar({filters, onFiltersChange}: NavbarProps) {
 
   const {data: allLocalities = [], isLoading} = useLocalities();
-  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [isLocationSearchOpen, setIsLocationSearchOpen] = useState(false);
 
   const handleLocalityChange = (newLocalities: string[]) => {
@@ -58,7 +57,7 @@ export default function Navbar({filters, onFiltersChange}: NavbarProps) {
         setIsOpen={setIsLocationSearchOpen}/>
 
     </div>
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-3xl">
       <Filters
         filters={filters}
         onFiltersChange={onFiltersChange}/>

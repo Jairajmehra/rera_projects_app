@@ -35,14 +35,53 @@ bounds?: {
     south: number;
     east: number;
     west: number;
-}
+};
+bhks?: string[];
+locality?: string[];
+propertyType?: string[];
+transactionType?: string;
+priceMin?: number;
+priceMax?: number;
 }
 
-export const fetchResidentialProperties = async ({ page = 1, limit = 50, offset = 0, bounds}: FetchResidentialPropertiesParams = {}): Promise<ResidentialPropertiesApiResponse> => 
+export const fetchResidentialProperties = async ({ params}: { params: FetchResidentialPropertiesParams}): Promise<ResidentialPropertiesApiResponse> => 
 {
+const searchParams = new URLSearchParams();
 
-const boundsParams = bounds ? `&minLat=${bounds.south}&maxLat=${bounds.north}&minLng=${bounds.west}&maxLng=${bounds.east}` : '';
-const api_call_url = `http://192.168.29.3:8096/residential_properties?page=${page}&limit=${limit}&offset=${offset}${boundsParams}`;
+if (params.limit) searchParams.append('limit', params.limit.toString());
+  if (params.offset) searchParams.append('offset', params.offset.toString());
+
+  // Add bounds params
+  if (params.bounds) {
+    searchParams.append('north', params.bounds.north.toString());
+    searchParams.append('south', params.bounds.south.toString());
+    searchParams.append('east', params.bounds.east.toString());
+    searchParams.append('west', params.bounds.west.toString());
+  }
+
+  // Add filter params
+  if (params.bhks?.length) {
+    searchParams.append('bhk', params.bhks.join(','));
+  }
+  if (params.locality?.length) {
+    searchParams.append('locality', params.locality.join(','));
+  }
+  if (params.propertyType?.length) {
+    searchParams.append('propertyType', params.propertyType.join(','));
+  }
+  if (params.transactionType) {
+    searchParams.append('transactionType', params.transactionType);
+  }
+  if (params.priceMin) {
+    searchParams.append('priceMin', params.priceMin.toString());
+  }
+  if (params.priceMax) {
+    searchParams.append('priceMax', params.priceMax.toString());
+  }
+
+console.log('Search params:', searchParams.toString());
+
+const api_call_url = `http://192.168.29.3:8080/residential_properties?${searchParams.toString()}`;
 console.log('API call URL:', api_call_url);
 const res = await fetch(api_call_url);
 if (!res.ok) {
