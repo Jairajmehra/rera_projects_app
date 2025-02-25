@@ -1,6 +1,7 @@
 import React from 'react';
 import { ResidentialProperty } from '../services/residentialPropertyService';
 import useViewport from '../utils/useViewport';
+import Image from 'next/image';
 
 interface ResidentialPopUpCardProps {
     property: ResidentialProperty;
@@ -26,9 +27,11 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({property, on
                 >
                     x
                 </button>
-                <img 
+                <Image 
                     src={coverImage} 
                     alt={property.name} 
+                    width={800}
+                    height={400}
                     className="w-full h-[40vh] object-cover"
                 />
                 <div className="flex flex-col p-4 space-y-4">
@@ -53,7 +56,7 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({property, on
             onClick={(e) => e.stopPropagation()}
         >
             <button 
-                onClick={(e) => {
+                onClick={() => {
                     onClose();
                 }} 
                 className="absolute top-2 right-2 bg-gray-200 rounded-full p-1"
@@ -62,7 +65,9 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({property, on
                 X
             </button>
             <div className="flex flex-col">
-                <img 
+                <Image 
+                    width={800}
+                    height={400}
                     src={coverImage} 
                     alt={property.name} 
                     className="w-full h-48 object-cover mb-4"

@@ -1,12 +1,12 @@
 import React from 'react';
 import { ResidentialProperty } from '../services/residentialPropertyService';
-
+import Image from 'next/image';
 interface ResidentialPropertyCardProps {
     property: ResidentialProperty;
     onClick: () => void;
 }
 
-const ResidentialPropertyCard: React.FC<ResidentialPropertyCardProps> = ({ property, onClick }) => {
+const ResidentialPropertyCard: React.FC<ResidentialPropertyCardProps> = React.memo(({ property, onClick }) => {
 
     let coverImage = Array.isArray(property.photos) ? property.photos[0] : property.photos;
     if (!coverImage)
@@ -34,9 +34,9 @@ const ResidentialPropertyCard: React.FC<ResidentialPropertyCardProps> = ({ prope
 
      <>
      {/* Cover Image */}
-     <div className= "max-w-md bg-white rounded-md shadow-md overflow-hidden border border-gray-200">
+     <div className= "max-w-md bg-white rounded-md shadow-md overflow-hidden border border-gray-200" onClick={onClick}>
         <div className= "h-48 bg-gray-300 flex items-center justify-center">
-            <img src ={coverImage} alt={property.name} className="w-full h-full object-cover"></img>
+            <Image width={800} height={400} src ={coverImage} alt={property.name} className="w-full h-full object-cover"></Image>
         </div>
         {/* Property Details */}
         <div className="p-6">
@@ -65,6 +65,11 @@ const ResidentialPropertyCard: React.FC<ResidentialPropertyCardProps> = ({ prope
     </div>
 
     </>
-    )};
+)});
 
-export default ResidentialPropertyCard;
+ResidentialPropertyCard.displayName = 'ResidentialPropertyCard';
+
+export default React.memo(ResidentialPropertyCard, (prevProps, nextProps) => {
+    return prevProps.property.airtable_id === nextProps.property.airtable_id;
+});
+//export default ResidentialPropertyCard;

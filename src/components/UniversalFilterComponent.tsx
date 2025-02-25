@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {  useRef, useEffect } from 'react';
 
 // Define the structure of a filter category
 interface UniversalFilterProps {
@@ -14,7 +14,6 @@ interface UniversalFilterProps {
 
 export const FilterSearch = ({label, FilterOptions, selectedFilters, onSelect, isOpen, setIsOpen}: UniversalFilterProps) => {
 
-  const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Handle click outside to close dropdown

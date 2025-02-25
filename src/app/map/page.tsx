@@ -15,7 +15,7 @@ export interface Filters {
 
 const MapPage: React.FC = () => {
     // STEP 1: Create filters in MapPage
-  const [filters, setFilters] = useState<Filters>({bhks: [], propertyType: [],locations: [], transactionType: [], priceMin: 0, priceMax: 0});
+  const [filters, setFilters] = useState<Filters>({bhks: [], propertyType: [],locations: [], transactionType:[], priceMin: 0, priceMax: 0});
 
     return (
 
@@ -25,7 +25,7 @@ const MapPage: React.FC = () => {
           <Navbar filters={filters} onFiltersChange={setFilters} />
       </div>
       <div className="flex-1 relative">
-          <MapContainer filters={filters} onFiltersChange={setFilters} />
+          <MapContainer filters={filters}  />
       </div>
       </div>
 

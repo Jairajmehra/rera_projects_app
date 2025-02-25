@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 interface LocationSearchProps {
   localities: string[];
@@ -13,6 +13,11 @@ export const LocationSearch = ({localities, selectedLocalities, onSelect, isOpen
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const clearSearch = useCallback(() => {
+    setSearchTerm('');
+    setIsOpen(false);
+  }, [setIsOpen]); 
+  
   // Add click outside handler
   useEffect(() => 
   {
@@ -26,13 +31,9 @@ export const LocationSearch = ({localities, selectedLocalities, onSelect, isOpen
     { 
       document.removeEventListener('mousedown', handleClickOutside);
     }; 
-  }, [isOpen]);
+  }, [isOpen, clearSearch]);
 
 
-  const clearSearch = () => {
-    setSearchTerm('');
-    setIsOpen(false);
-  }
 
   // Filter localities based on search term
   const filteredLocalities = localities.filter(locality =>

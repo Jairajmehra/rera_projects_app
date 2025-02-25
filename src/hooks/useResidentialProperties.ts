@@ -31,7 +31,7 @@ const useResidentialProperties = ({page = 1, limit = 200, offset = 0, bounds, fi
             bhks: filters?.bhks,
             locality: filters?.locations,
             propertyType: filters?.propertyType,
-            transactionType: filters?.transactionType,
+            transactionType: filters?.transactionType?.join(','),
             priceMin: filters?.priceMin,
             priceMax: filters?.priceMax,
         }

@@ -13,7 +13,7 @@ interface NavbarProps {
 
 export default function Navbar({filters, onFiltersChange}: NavbarProps) {
 
-  const {data: allLocalities = [], isLoading} = useLocalities();
+  const {data: allLocalities = []} = useLocalities();
   const [isLocationSearchOpen, setIsLocationSearchOpen] = useState(false);
 
   const handleLocalityChange = (newLocalities: string[]) => {

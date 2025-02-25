@@ -81,7 +81,7 @@ if (params.limit) searchParams.append('limit', params.limit.toString());
 
 console.log('Search params:', searchParams.toString());
 
-const api_call_url = `http://192.168.29.3:8080/residential_properties?${searchParams.toString()}`;
+const api_call_url = `https://test-vision-api-389008.el.r.appspot.com/residential_properties?${searchParams.toString()}`;
 console.log('API call URL:', api_call_url);
 const res = await fetch(api_call_url);
 if (!res.ok) {

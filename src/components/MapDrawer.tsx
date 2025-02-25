@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import ResidentialPropertyCard from './ResidentialPropertyCard';
 import useViewport from '../utils/useViewport';
-import { Filters } from '../app/map/page';
 import { ResidentialProperty } from '../services/residentialPropertyService';
 export type DrawerState = 'collapsed' | 'partial' | 'full';
 
 interface MapDrawerProps {
     properties: ResidentialProperty[];
     onPropertySelect: (property: ResidentialProperty) => void;
-    filters: Filters;
-    onFiltersChange: (filters: Filters) => void;
+    // filters: Filters;
+    // onFiltersChange: (filters: Filters) => void;
+
 }
 
-const MapDrawer: React.FC<MapDrawerProps> = ({ properties, onPropertySelect, filters, onFiltersChange }) => {
+const MapDrawer: React.FC<MapDrawerProps> = ({ properties, onPropertySelect }) => {
 
     const [drawerState, setDrawerState] = useState<DrawerState>('collapsed');
     const isMobile = useViewport();
@@ -27,6 +27,8 @@ const MapDrawer: React.FC<MapDrawerProps> = ({ properties, onPropertySelect, fil
             });
         }
     };
+
+  
 
     const getDrawerClassName = () => {
       if (!isMobile) {
@@ -61,7 +63,7 @@ return (
       )}
 
       {/* Drawer content */}
-      {shouldShowContent() && (
+      {shouldShowContent() &&  (
 
                 <div className="relative h-[calc(100%-2.5rem)]">
                     <div className="absolute inset-0 p-4 overflow-auto">

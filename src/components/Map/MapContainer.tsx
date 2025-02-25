@@ -16,15 +16,15 @@ declare global {
   
 interface MapContainerProps {
       filters: Filters;
-      onFiltersChange: (filters: Filters) => void; // if needed
+      //onFiltersChange: (filters: Filters) => void; // if needed
     }
 
 
-const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange }) => {
+const MapContainer: React.FC<MapContainerProps> = ({ filters }) => {
 
     // Add a Set to track unique markers by rera number
     const markerPositionsRef = useRef(new Set<string>());
-
+    const prevFiltersRef = useRef(filters);
     const mapRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
     const [selectedProperty, setSelectedProperty] = useState<ResidentialProperty | null>(null);
@@ -44,36 +44,6 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
         markerPositionsRef.current.clear();
       }
 
-    /**
-   * Remove markers that are outside the viewport extended by 20%.
-   * Markers that lie outside the extended bounds are removed from the map.
-   */
-  const removeMarkersOutsideExtendedBounds = () => {
-    
-    if (!mapInstance) {
-        return;
-    }
-    const currentBounds = mapInstance.getBounds();
-    if (!currentBounds){
-        return;
-    } 
-    // Extend viewport by 20% 
-    const extensionPercentage = 0.2;
-    const extendedBounds = getExtendedBounds(currentBounds, extensionPercentage);
-    
-    // Filter markers: remove the marker if it does not fall within extended bounds
-    markersRef.current = markersRef.current.filter((marker) => {
-      const markerPos = marker.position;
-      if (!markerPos || !extendedBounds.contains(markerPos)) 
-      {
-        marker.map = null;
-        markerPositionsRef.current.delete(marker.title);
-
-        return false;
-      }
-      return true;
-    });
-  };
 
 
   // Fetch the projects from the API using our custom hook when the bounds change
@@ -89,12 +59,47 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
     
 
     // Utility function to set the new bounds waits for 500ms before setting the bounds
-    const onBoundsChange = useCallback(debounce((map: google.maps.Map) => 
-    {
-        const newBounds = map.getBounds();
-            if (newBounds) {
-                setBounds(newBounds);
-    }}, 500), []);
+    // const onBoundsChange = useCallback(debounce((map: google.maps.Map) => 
+    // {
+    //     const newBounds = map.getBounds();
+    //         if (newBounds) {
+    //             setBounds(newBounds);
+    // }}, 500), []);
+    const debouncedBoundsChange = useMemo(
+      () => 
+        debounce((map: google.maps.Map) => {
+          const newBounds = map.getBounds();
+          if (newBounds) {
+            setBounds(newBounds);
+          }
+        }, 500),
+      []
+    );
+    
+    const onBoundsChange = useCallback((map: google.maps.Map) => {
+      debouncedBoundsChange(map);
+    }, [debouncedBoundsChange]);
+
+
+    const initMap = useCallback(() => 
+      {
+          console.log('Initializing map');
+          if (!mapRef.current || !window.google){ 
+              console.log('Map ref or window.google is not available');
+              return;
+          }
+          const map = new window.google.maps.Map(mapRef.current, {
+              center: { lat: 23.022938, lng: 72.530304 },
+              zoom: 12,
+              mapId: '4357fd779b0d90cd',
+              gestureHandling: 'greedy',
+          });
+          map.addListener('bounds_changed', () => {
+              onBoundsChange(map);
+          });
+          setMapInstance(map);
+          console.log('Map instance set', map);
+      }, [onBoundsChange]);
 
     useEffect(() => {
         if (!window.google) 
@@ -115,35 +120,9 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
             initMap();
             return;
         }
-    }, []);
-
-    const initMap = () => 
-    {
-        console.log('Initializing map');
-        if (!mapRef.current || !window.google){ 
-            console.log('Map ref or window.google is not available');
-            return;
-        }
-        const map = new window.google.maps.Map(mapRef.current, {
-            center: { lat: 23.022938, lng: 72.530304 },
-            zoom: 12,
-            mapId: '4357fd779b0d90cd',
-            gestureHandling: 'greedy',
-        });
-        map.addListener('bounds_changed', () => {
-            onBoundsChange(map);
-        });
-        setMapInstance(map);
-        console.log('Map instance set', map);
-    };
+    }, [initMap]);
 
 
-
-        useEffect(() => 
-        {
-            if (!mapInstance || !bounds) return;
-            removeMarkersOutsideExtendedBounds();
-        }, [mapInstance, bounds]);
 
         const uniqueProperties = useMemo(() => 
         {
@@ -171,36 +150,53 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, onFiltersChange })
               });
           }, [uniqueProperties]);
 
-            useEffect(() => {
+            useEffect(() => 
+            {
                 if (!mapInstance) return;
-                // Clear all existing markers.
-                clearAllMarkers();
-                console.log('Filters:', filters);
+                // Clear all markers only if filters have changed
+                if (prevFiltersRef.current !== filters) 
+                {
+                  clearAllMarkers();
+                  prevFiltersRef.current = filters;
+                }
                 // Add new markers for each filtered project.
-                validProperties.forEach((property) => {
+                validProperties.forEach((property) => 
+                {
                   const markerId = property.airtable_id;
-                  const { lat, lng } = parseCoordinates(property.coordinates);
+                  if (!markerPositionsRef.current.has(markerId))
+                  {
+                    const { lat, lng } = parseCoordinates(property.coordinates);
+                    const marker = new window.google.maps.marker.AdvancedMarkerElement({
+                      map: mapInstance,
+                      position: { lat, lng },
+                      title: markerId,
+                    });
+                    marker.addListener("click", () => {
+                      console.log("Marker clicked:", property.airtable_id);
+                      setSelectedProperty(property);
+                    });
 
-                  if (markerPositionsRef.current.has(markerId)) return;
-
-                  const marker = new window.google.maps.marker.AdvancedMarkerElement({
-                    map: mapInstance,
-                    position: { lat, lng },
-                    title: property.airtable_id,
-                  });
-                  marker.addListener("click", () => {
-                    console.log("Marker clicked:", property.airtable_id);
-                    setSelectedProperty(property);
-                  });
                   markersRef.current.push(marker);
                   markerPositionsRef.current.add(markerId);
+                  
+                  }
                 });
-                console.log("Markers Count after adding:", markersRef.current.length);
+
+                const currentBounds = mapInstance.getBounds();
+                if (currentBounds) {
+                  const extendedBounds = getExtendedBounds(currentBounds, 0.2);
+                  markersRef.current = markersRef.current.filter((marker) => {
+                    const markerPos = marker.position;
+                    if (!markerPos || !extendedBounds.contains(markerPos)) {
+                      marker.map = null;
+                      markerPositionsRef.current.delete(marker.title);
+                      return false;
+                    }
+                    return true;
+                  });
+                }
               }, [validProperties, mapInstance, filters]);
         
-
-
-
 
 if (isMobile) 
 {
@@ -226,9 +222,10 @@ if (isMobile)
         <div className="w-full">
           <MapDrawer 
             properties={validProperties || []} 
-            filters={filters}
-            onFiltersChange={onFiltersChange}
+            //filters={filters}
+            //onFiltersChange={onFiltersChange}
             onPropertySelect={(property) => setSelectedProperty(property)}
+   
           />
         </div>
       </div>
@@ -257,9 +254,10 @@ if (isMobile)
         <div className="w-[55%] h-full">
           <MapDrawer 
             properties={validProperties || []} 
-            filters={filters}
-            onFiltersChange={onFiltersChange}
+            //filters={filters}
+            //onFiltersChange={onFiltersChange}
             onPropertySelect={(property) => setSelectedProperty(property)}
+           
           />
         </div>
       </div>
