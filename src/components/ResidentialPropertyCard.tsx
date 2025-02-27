@@ -1,6 +1,8 @@
 import React from 'react';
 import { ResidentialProperty } from '../services/residentialPropertyService';
 import Image from 'next/image';
+import { generatePropertyUrl } from '../utils/Utils';
+import { useRouter } from 'next/navigation';
 interface ResidentialPropertyCardProps {
     property: ResidentialProperty;
     onClick: () => void;
@@ -8,6 +10,8 @@ interface ResidentialPropertyCardProps {
 
 const ResidentialPropertyCard: React.FC<ResidentialPropertyCardProps> = React.memo(({ property, onClick }) => {
 
+    const router = useRouter();
+    const propertyUrl = generatePropertyUrl(property);
     let coverImage = Array.isArray(property.photos) ? property.photos[0] : property.photos;
     if (!coverImage)
     {
@@ -26,15 +30,22 @@ const ResidentialPropertyCard: React.FC<ResidentialPropertyCardProps> = React.me
         }
         return price.toString();
     };
+
     const displayPrice = property.price 
         ? `₹${formatIndianPrice(property.price)}` 
         : "Available on Request";
+
+        const handleClick = (e: React.MouseEvent) => {
+            e.preventDefault();
+            router.push(propertyUrl); // Use Next.js router instead of window.location
+            if (onClick) onClick(); // Still call the onClick prop if provided
+        };
 
     return (
 
      <>
      {/* Cover Image */}
-     <div className= "max-w-md bg-white rounded-md shadow-md overflow-hidden border border-gray-200" onClick={onClick}>
+     <div className= "max-w-md bg-white rounded-md shadow-md overflow-hidden border border-gray-200" onClick={handleClick}>
         <div className= "h-48 bg-gray-300 flex items-center justify-center">
             <Image width={800} height={400} src ={coverImage} alt={property.name} className="w-full h-full object-cover"></Image>
         </div>

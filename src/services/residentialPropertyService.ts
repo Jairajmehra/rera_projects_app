@@ -79,13 +79,24 @@ if (params.limit) searchParams.append('limit', params.limit.toString());
     searchParams.append('priceMax', params.priceMax.toString());
   }
 
-console.log('Search params:', searchParams.toString());
 
-const api_call_url = `https://test-vision-api-389008.el.r.appspot.com/residential_properties?${searchParams.toString()}`;
-console.log('API call URL:', api_call_url);
+
+const api_call_url = `http://192.168.29.3:8082/residential_properties?${searchParams.toString()}`;
+
 const res = await fetch(api_call_url);
 if (!res.ok) {
   throw new Error('API response was not ok');
 }
 return res.json();
+};
+
+
+export const getResidentialPropertyById = async (id: string): Promise<ResidentialProperty> => {
+
+  const res = await fetch(`http://192.168.29.3:8082/residential_property_by_id?propertyId=${id}`);
+  if (!res.ok) {
+ 
+    throw new Error('API response was not ok');
+  }
+  return res.json();
 };
