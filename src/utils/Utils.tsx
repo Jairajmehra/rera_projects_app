@@ -66,3 +66,31 @@ export const formatIndianPrice = (price: number): string => {
   }
   return price.toString();
 }
+
+
+export const parsePropertyConfig = (config: string): {
+  bhkCount: string;
+  propertyType: string;
+  transactionType: string;
+} => {
+  // Validate input is a non-empty string
+  if (typeof config !== 'string' || config.trim() === '') {
+    throw new Error('Property config must be a non-empty string');
+  }
+
+  // Match the pattern: e.g., "4-bhk-bungalow-villa-for-rent"
+  const match = config.match(/(\d+)-bhk-(.*)-for-(.*)/);
+  if (!match) {
+    throw new Error(`Invalid property config format: ${config}`);
+  }
+
+  // Destructure the match array, skipping the full match (index 0)
+  const [, bhkCount, propertyType, transactionType] = match;
+
+  // Additional validation (optional)
+  if (!bhkCount || !propertyType || !transactionType) {
+    throw new Error(`Incomplete property config: bhkCount=${bhkCount}, propertyType=${propertyType}, transactionType=${transactionType}`);
+  }
+
+  return { bhkCount, propertyType, transactionType };
+};

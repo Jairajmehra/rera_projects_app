@@ -1,4 +1,4 @@
-// app/residential/properties/[city]/[area]/[bhkCount]-bhk-[propertyType]-for-[transactionType]/[propertyNameSlug]-[propertyId]/page.tsx
+// app/residential/properties/[city]/[area]/[bhk]-[propertyType]-for-[transactionType]/[propertyNameSlug]/[propertyId]/page.tsx
 
 import Link from "next/link";
 import { ResidentialProperty } from "@/services/residentialPropertyService";
@@ -6,44 +6,73 @@ import { Suspense } from "react";
 import ClientPropertyView from "./ClientPropertyView";
 import { getResidentialPropertyById } from "@/services/residentialPropertyService";
 import { formatIndianPrice } from "@/utils/Utils";
+import { parsePropertyConfig } from "@/utils/Utils";
 
-interface Props {
-  params: {
-    city: string;
-    area: string;
-    bhk: string;
-    propertyType: string;
-    transactionType: string;
-    propertyNameSlug: string;
-    propertyId: string;
-  };
-  searchParams: { [key: string]: string | string[] | undefined };
+// Dynamic route segment pattern based on actual Next.js parameter naming
+type Params = {
+  city: string;
+  area: string;
+  "bhk]-[propertyType]-for-[transactionType": string; // Exact parameter name from logs
+  propertyNameSlug: string;
+  propertyId: string;
 }
-
-
 
 // Server-side data fetching function
 async function getPropertyDetails(propertyId: string): Promise<ResidentialProperty | null> {
-
-  
   try {
-  
-  const property = await getResidentialPropertyById(propertyId);
-
-  if (!property) {
-    return null;
-  }
-   return property;
-
+    const property = await getResidentialPropertyById(propertyId);
+    if (!property) {
+      return null;
+    }
+    return property;
   } catch (error) {
     console.error("Error fetching property details:", error);
     return null;
   }
 }
 
-export async function generateMetadata({ params }: Props) {
-  //console.log("params", params.propertyId);
-  const property = await getPropertyDetails(params.propertyId);
+// Extract readable info from the combined route parameter
+async function parseRouteParams(params: Params | Promise<Params>) {
+  // Ensure params is awaited
+  const resolvedParams = await params;
+  
+  try {
+    // Access the specific parameter directly without spreading
+    const combinedSegment = resolvedParams["bhk]-[propertyType]-for-[transactionType"];
+    
+    // Parse the property configuration
+    const { bhkCount, propertyType, transactionType } = parsePropertyConfig(combinedSegment);
+    
+    return {
+      city: resolvedParams.city,
+      area: resolvedParams.area,
+      propertyId: resolvedParams.propertyId,
+      propertyNameSlug: resolvedParams.propertyNameSlug,
+      bhkCount,
+      propertyType,
+      transactionType
+    };
+  } catch (error: any) {
+    // Production fallback with minimal logging
+    console.error("Error parsing route parameters:", error.message || String(error));
+    return {
+      city: resolvedParams.city,
+      area: resolvedParams.area,
+      propertyId: resolvedParams.propertyId,
+      propertyNameSlug: resolvedParams.propertyNameSlug,
+      bhkCount: "Unknown",
+      propertyType: "Unknown",
+      transactionType: "Unknown"
+    };
+  }
+}
+
+export async function generateMetadata({ params }: { params: Params | Promise<Params> }) {
+  // Parse parameters and await the result
+  const parsedParams = await parseRouteParams(params);
+  const { city, area, propertyId, bhkCount, propertyType, transactionType } = parsedParams;
+  
+  const property = await getPropertyDetails(propertyId);
   
   if (!property) {
     return {
@@ -53,19 +82,21 @@ export async function generateMetadata({ params }: Props) {
   }
   
   return {
-    title: `${property.bhk} ${property.propertyType} for ${property.transactionType} in ${params.area}, Ahmedabad`,
-    description: `${property.name} - A beautiful ${property.bhk} ${property.propertyType} for ${property.transactionType} in ${params.area}, ${params.city}. Price: ₹${formatIndianPrice(property.price)}.`,
+    metadataBase: new URL('https://www.propview.ai'),
+    title: `${bhkCount} ${propertyType} for ${transactionType} in ${area}, ${city}`,
+    description: `${property.name} - A beautiful ${bhkCount} ${propertyType} for ${transactionType} in ${area}, ${city}. Price: ₹${formatIndianPrice(property.price)}.`,
     openGraph: {
       images: [property.photos[0]],
     },
   };
 }
 
-export default async function PropertyPage({ params }: Props) {
-
- 
-  const property = await getPropertyDetails(params.propertyId);
- 
+export default async function PropertyPage({ params }: { params: Params | Promise<Params> }) {
+  // Parse parameters and await the result
+  const parsedParams = await parseRouteParams(params);
+  const { city, area, propertyId, bhkCount, propertyType, transactionType, propertyNameSlug } = parsedParams;
+  
+  const property = await getPropertyDetails(propertyId);
 
   if (!property) {
     return (
@@ -90,12 +121,12 @@ export default async function PropertyPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
     "name": property.name,
-    "description": `${property.bhk} ${property.propertyType} for ${property.transactionType} in ${params.area}, ${params.city}`,
+    "description": `${property.bhk} ${property.propertyType} for ${property.transactionType} in ${area}, ${city}`,
     "image": Array.isArray(property.photos) ? property.photos : [property.photos],
     "address": {
       "@type": "PostalAddress",
-      "addressLocality": params.area,
-      "addressRegion": params.city,
+      "addressLocality": area,
+      "addressRegion": city,
       "addressCountry": "IN"
     },
     "offers": {
@@ -103,7 +134,7 @@ export default async function PropertyPage({ params }: Props) {
       "price": property.price,
       "priceCurrency": "INR"
     },
-    "url": `https://yourdomain.com/residential/properties/${params.city}/${params.area}/${params.bhk}-${params.propertyType}-for-${params.transactionType}/${params.propertyNameSlug}/${params.propertyId}`,
+    "url": `https://yourdomain.com/residential/properties/${city}/${area}/${bhkCount}-${propertyType}-for-${transactionType}/${propertyNameSlug}/${propertyId}`,
     "numberOfRooms": property.bhk.split('-')[0], // Extracting number from "4-bhk"
     "floorSize": {
       "@type": "QuantitativeValue",
@@ -130,7 +161,7 @@ export default async function PropertyPage({ params }: Props) {
       }>
         <ClientPropertyView 
           property={property} 
-          city={params.city} 
+          city={city} 
           formattedPrice={formattedPrice} 
         />
       </Suspense>

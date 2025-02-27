@@ -11,7 +11,7 @@ export interface ResidentialProperty
     landmark: string;
     condition: string;
     date: string;
-    bhk: string | string[];
+    bhk: string;
     airtable_id: string;
     linked_project_rera: string;
 }
