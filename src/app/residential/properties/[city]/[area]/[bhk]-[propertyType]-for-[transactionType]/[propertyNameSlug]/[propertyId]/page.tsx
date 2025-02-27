@@ -8,6 +8,9 @@ import { getResidentialPropertyById } from "@/services/residentialPropertyServic
 import { formatIndianPrice } from "@/utils/Utils";
 import { parsePropertyConfig } from "@/utils/Utils";
 
+
+// Set page-level revalidation period to 24 hours (in seconds)
+export const revalidate = 86400; // 24 * 60 * 60 = 86400 seconds
 // Dynamic route segment pattern based on actual Next.js parameter naming
 type Params = {
   city: string;
@@ -91,6 +94,8 @@ export async function generateMetadata({ params }: { params: Params | Promise<Pa
   };
 }
 
+
+
 export default async function PropertyPage({ params }: { params: Params | Promise<Params> }) {
   // Parse parameters and await the result
   const parsedParams = await parseRouteParams(params);
@@ -134,7 +139,7 @@ export default async function PropertyPage({ params }: { params: Params | Promis
       "price": property.price,
       "priceCurrency": "INR"
     },
-    "url": `https://yourdomain.com/residential/properties/${city}/${area}/${bhkCount}-${propertyType}-for-${transactionType}/${propertyNameSlug}/${propertyId}`,
+    "url": `https://www.propview.ai/residential/properties/${city}/${area}/${bhkCount}-${propertyType}-for-${transactionType}/${propertyNameSlug}/${propertyId}`,
     "numberOfRooms": property.bhk.split('-')[0], // Extracting number from "4-bhk"
     "floorSize": {
       "@type": "QuantitativeValue",
