@@ -27,7 +27,7 @@ export const FilterSearch = ({label, FilterOptions, selectedFilters, onSelect, i
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, setIsOpen]);
 
 
   const handleSelect = (option: string) => {

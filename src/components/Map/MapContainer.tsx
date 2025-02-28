@@ -177,7 +177,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters }) => {
                 google.maps.event.clearInstanceListeners(mapInstance);
             }
         };
-    }, []); // Empty dependency array means this runs once on mount
+    }, [mapInstance]); // Add mapInstance as a dependency since it's used in the cleanup function
 
     // Initialize map after Google Maps is loaded and mapRef is available
     useEffect(() => {

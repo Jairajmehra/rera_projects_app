@@ -55,9 +55,10 @@ async function parseRouteParams(params: Params | Promise<Params>) {
       propertyType,
       transactionType
     };
-  } catch (error: any) {
+  } catch (error: Error | unknown) { // Replace any with a proper type
     // Production fallback with minimal logging
-    console.error("Error parsing route parameters:", error.message || String(error));
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error parsing route parameters:", errorMessage);
     return {
       city: resolvedParams.city,
       area: resolvedParams.area,
@@ -70,7 +71,7 @@ async function parseRouteParams(params: Params | Promise<Params>) {
   }
 }
 
-export async function generateMetadata({ params }: { params: Params | Promise<Params> }) {
+export async function generateMetadata({ params }: { params: Promise<Params> }) {
   // Parse parameters and await the result
   const parsedParams = await parseRouteParams(params);
   const { city, area, propertyId, bhkCount, propertyType, transactionType } = parsedParams;
@@ -96,7 +97,7 @@ export async function generateMetadata({ params }: { params: Params | Promise<Pa
 
 
 
-export default async function PropertyPage({ params }: { params: Params | Promise<Params> }) {
+export default async function PropertyPage({ params }: { params: Promise<Params> }) {
   // Parse parameters and await the result
   const parsedParams = await parseRouteParams(params);
   const { city, area, propertyId, bhkCount, propertyType, transactionType, propertyNameSlug } = parsedParams;
@@ -107,7 +108,7 @@ export default async function PropertyPage({ params }: { params: Params | Promis
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <h1 className="text-2xl font-bold text-red-500 mb-4">Property Not Found</h1>
-        <p className="text-gray-600 mb-6">We couldn't find the property you're looking for.</p>
+        <p className="text-gray-600 mb-6">We couldn&apos;t find the property you&apos;re looking for.</p>
         <Link href="/map" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
           View All Properties
         </Link>

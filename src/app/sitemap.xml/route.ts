@@ -10,7 +10,7 @@ export async function GET() {
     // Fetch all properties with a high limit to get as many as possible
     const response = await fetchResidentialProperties({
       params: {
-        limit: 1000, // Adjust based on your API capabilities
+        limit: 10000, // Adjust based on your API capabilities
       }
     });
     
