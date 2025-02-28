@@ -23,8 +23,49 @@ export async function GET() {
       return strValue.toLowerCase().replace(/\//g, '-').replace(/\s+/g, '-');
     };
 
+    // Get current date for lastmod
+    const currentDate = new Date().toISOString();
+
+    // Define primary pages for the sitemap
+    const primaryPages = [
+      {
+        url: 'https://www.propview.ai',
+        lastmod: currentDate,
+        changefreq: 'weekly',
+        priority: '1.0' // Homepage gets highest priority
+      },
+      {
+        url: 'https://www.propview.ai/map',
+        lastmod: currentDate,
+        changefreq: 'daily',
+        priority: '0.9' // Map/search page gets high priority
+      },
+      // Add other important pages as needed
+      // {
+      //   url: 'https://www.propview.ai/contact',
+      //   lastmod: currentDate,
+      //   changefreq: 'monthly',
+      //   priority: '0.7'
+      // },
+      // {
+      //   url: 'https://www.propview.ai/about',
+      //   lastmod: currentDate,
+      //   changefreq: 'monthly',
+      //   priority: '0.7'
+      // }
+    ];
+
+    // Generate sitemap XML
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      ${primaryPages.map(page => `
+        <url>
+          <loc>${page.url}</loc>
+          <lastmod>${page.lastmod}</lastmod>
+          <changefreq>${page.changefreq}</changefreq>
+          <priority>${page.priority}</priority>
+        </url>
+      `).join('')}
       ${properties.map((property: ResidentialProperty) => {
         // Format property data for URL segments
         const city = 'ahmedabad'; // Default city or extract from property if available
@@ -39,7 +80,7 @@ export async function GET() {
         const transactionType = formatSegment(property.transactionType);
         const propertyName = property.name.toLowerCase().replace(/\//g, '-').replace(/\s+/g, '-');
         
-        const lastMod = new Date().toISOString();
+        const lastMod = currentDate;
         
         return `
         <url>
