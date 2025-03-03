@@ -48,7 +48,7 @@ export const FilterSearch = ({label, FilterOptions, selectedFilters, onSelect, i
 
         {/* Dropdown Trigger */}
         <div
-          className="relative w-full max-w-md md:max-w-sm flex overflow-x-auto border border-blue-500 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 h-10"
+          className="relative w-full max-w-md md:max-w-sm flex border border-blue-500 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 h-10 items-center"
           onClick={() => setIsOpen(!isOpen)}>
 
             {selectedFilters.length > 0 ? (

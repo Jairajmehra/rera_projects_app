@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {availableBHKs} from '../utils/filterOptions';
-import {Filters as FiltersType} from '../app/map/page';
+import {ResidentialFilters as FiltersType} from '../services/filters';
 import {FilterSearch} from './UniversalFilterComponent';
 import useViewport from '../utils/useViewport';
 import { propertyTypes } from '../utils/filterOptions';
@@ -117,8 +117,8 @@ export default function Filters({ filters, onFiltersChange}: FiltersProps)
 
   return (
     <>
-    <div className="flex flex-row w-full space-x-4">
-      <div className="flex flex-row w-1/3">
+    <div className="flex flex-row w-full space-x-6">
+      <div className="flex flex-row w-full">
         <FilterSearch
           label="BHK"
           FilterOptions={availableBHKs}
@@ -128,7 +128,7 @@ export default function Filters({ filters, onFiltersChange}: FiltersProps)
           setIsOpen={setIsBHKFilterOpen}
         />
       </div>
-      <div className="flex flex-row w-1/3">
+      <div className="flex flex-row w-full">
         <FilterSearch
           label="Property Type"
           FilterOptions={propertyTypes}
@@ -139,7 +139,7 @@ export default function Filters({ filters, onFiltersChange}: FiltersProps)
         />
       </div>
 
-      <div className="flex flex-row w-1/3">
+      <div className="flex flex-row w-full">
       <FilterSearch
           label="Rent/Sale"
           FilterOptions={transactionTypes}
