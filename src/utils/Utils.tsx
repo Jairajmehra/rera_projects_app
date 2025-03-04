@@ -1,5 +1,7 @@
-import { ResidentialProperty } from "../services/residentialPropertyService";
+import { ResidentialProperty, CommercialProperty } from "../services/PropertyService";
 
+// Define a union type for properties
+type Property = ResidentialProperty | CommercialProperty;
 
 export const parseCoordinates = (coordinateString: string): { lat: number; lng: number } => 
     {
@@ -34,20 +36,33 @@ export const getExtendedBounds = (bounds: google.maps.LatLngBounds, extensionPer
               .replace(/[^\w-]+/g, '')  // Remove any other weird characters (punctuation, etc.)
               .replace(/-+/g, '-');     // Collapse multiple dashes into one
           }
-          export const generatePropertyUrl = (property: ResidentialProperty) => {
+          export const generatePropertyUrl = (property: Property) => {
             // Helper to handle arrays or strings
             const formatValue = (value: string | string[]): string =>
               Array.isArray(value) ? value[0] : value;
           
-            const city = slugify("Ahmedabad"); // or slugify(formatValue(property.city)) if city also comes from API
+            const city = slugify("Ahmedabad"); // or slugify(formatValue(property.city)) 
             const area = slugify(formatValue(property.locality));
-            const bhk = slugify(formatValue(property.bhk));
-            const rawPropertyType = formatValue(property.propertyType);
-            const propertyType = slugify(rawPropertyType);
-            const transactionType = slugify(formatValue(property.transactionType));
-            const rawName = property.name;
-            const propertyNameSlug = slugify(rawName);
-            return `/residential/properties/${city}/${area}/${bhk}-${propertyType}-for-${transactionType}/${propertyNameSlug}/${property.airtable_id}`;
+            
+            // Check if it's a residential property (has bhk property)
+            if ('bhk' in property) {
+              // Residential property URL
+              const bhk = slugify(formatValue(property.bhk));
+              const rawPropertyType = formatValue(property.propertyType);
+              const propertyType = slugify(rawPropertyType);
+              const transactionType = slugify(formatValue(property.transactionType));
+              const rawName = property.name;
+              const propertyNameSlug = slugify(rawName);
+              return `/residential/properties/${city}/${area}/${bhk}-${propertyType}-for-${transactionType}/${propertyNameSlug}/${property.airtable_id}`;
+            } else {
+              // Commercial property URL
+              const rawPropertyType = formatValue(property.propertyType);
+              const propertyType = slugify(rawPropertyType);
+              const transactionType = slugify(formatValue(property.transactionType));
+              const rawName = property.name;
+              const propertyNameSlug = slugify(rawName);
+              return `/commercial/properties/${city}/${area}/${propertyType}-for-${transactionType}/${propertyNameSlug}/${property.airtable_id}`;
+            }
           };
           
 

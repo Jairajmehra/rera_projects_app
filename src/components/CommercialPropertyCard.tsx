@@ -1,14 +1,16 @@
 import React from 'react';
-import { ResidentialProperty } from '../services/PropertyService';
+import { CommercialProperty } from '../services/PropertyService';
 import Image from 'next/image';
 import { generatePropertyUrl } from '../utils/Utils';
 import { useRouter } from 'next/navigation';
-interface ResidentialPropertyCardProps {
-    property: ResidentialProperty;
+
+interface  CommercialPropertyCardProps {
+    property: CommercialProperty;
     onClick: () => void;
 }
 
-const ResidentialPropertyCard: React.FC<ResidentialPropertyCardProps> = React.memo(({ property, onClick }) => {
+// Define the component without React.memo() first
+const CommercialPropertyCard: React.FC<CommercialPropertyCardProps> = ({ property, onClick }) => {
 
     const router = useRouter();
     const propertyUrl = generatePropertyUrl(property);
@@ -55,10 +57,6 @@ const ResidentialPropertyCard: React.FC<ResidentialPropertyCardProps> = React.me
             <p className="text-gray-600 mb-2">{property.locality}</p>
             <div className="flex flex-col space-y-6">
                 <div className="flex flex-wrap gap-2 justify-between mb-4">
-       
-                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
-                            {property.bhk}
-                        </span>
 
                         <button className="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-sm font-semibold"> 
                             {property.propertyType}
@@ -76,10 +74,11 @@ const ResidentialPropertyCard: React.FC<ResidentialPropertyCardProps> = React.me
     </div>
 
     </>
-)});
+)};
 
-ResidentialPropertyCard.displayName = 'ResidentialPropertyCard';
+CommercialPropertyCard.displayName = 'CommercialPropertyCard';
 
-export default React.memo(ResidentialPropertyCard, (prevProps, nextProps) => {
+// Export the component wrapped with React.memo() only once
+export default React.memo(CommercialPropertyCard, (prevProps, nextProps) => {
     return prevProps.property.airtable_id === nextProps.property.airtable_id;
 });

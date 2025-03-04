@@ -1,6 +1,6 @@
 'use client';
 
-import { ResidentialProperty } from "@/services/residentialPropertyService";
+import { ResidentialProperty } from "@/services/PropertyService";
 import useViewport from "@/utils/useViewport";
 import Image from "next/image";
 import Link from "next/link";

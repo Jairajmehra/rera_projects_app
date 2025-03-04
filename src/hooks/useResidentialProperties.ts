@@ -1,39 +1,23 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchResidentialProperties, ResidentialPropertiesApiResponse } from '../services/residentialPropertyService';
-import { Filters } from '../app/map/page';
+import { fetchResidentialProperties, ResidentialPropertiesApiResponse } from '../services/PropertyService';
+import { FetchResidentialPropertiesParams } from '../services/PropertyService';
 
-//const API_URL = 'https://test-vision-api-389008.el.r.appspot.com';
-
-interface UseResidentialPropertiesApiParams {
-    offset?: number;
-    limit?: number;
-    page?: number;
-    bounds?: {
-        north: number;
-        south: number;
-        east: number;
-        west: number;
-  }
-  filters?: Filters;
-}
-
-
-const useResidentialProperties = ({page = 1, limit = 200, offset = 0, bounds, filters}: UseResidentialPropertiesApiParams) => {
+const useResidentialProperties = ({page = 1, limit = 200, offset = 0, bounds, bhks, locality, propertyType, transactionType, priceMin, priceMax}: FetchResidentialPropertiesParams) => {
 
     return useQuery<ResidentialPropertiesApiResponse, Error>({
-      queryKey: ['residentialProperties', bounds, filters, page, limit, offset],
+      queryKey: ['residentialProperties', bounds, bhks, locality, propertyType, transactionType, priceMin, priceMax, page, limit, offset],
       queryFn: () => fetchResidentialProperties({
         params: {
             page,
             limit,
             offset,
             bounds,
-            bhks: filters?.bhks,
-            locality: filters?.locations,
-            propertyType: filters?.propertyType,
-            transactionType: filters?.transactionType?.join(','),
-            priceMin: filters?.priceMin,
-            priceMax: filters?.priceMax,
+            bhks: bhks,
+            locality: locality,
+            propertyType: propertyType,
+            transactionType: transactionType,
+            priceMin: priceMin,
+            priceMax: priceMax,
         }
       }),
       staleTime: 1000 * 60 * 5, // 5 minutes

@@ -1,14 +1,14 @@
 import React from 'react';
-import { ResidentialProperty } from '../services/PropertyService';
+import { CommercialProperty } from '../services/PropertyService';
 import useViewport from '../utils/useViewport';
 import Image from 'next/image';
 
-interface ResidentialPopUpCardProps {
-    property: ResidentialProperty;
+interface CommercialPopUpCardProps {
+    property: CommercialProperty;
     onClose: () => void;
 }
 
-const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({property, onClose}) => {
+const CommercialPopUpCard: React.FC<CommercialPopUpCardProps> = ({property, onClose}) => {
     const isMobile = useViewport();
     let coverImage = Array.isArray(property.photos) ? property.photos[0] : property.photos;
     if (!coverImage)
@@ -37,7 +37,6 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({property, on
                 <div className="flex flex-col p-4 space-y-4">
                     <div className="flex flex-row justify-between items-center">
                         <h3 className="text-xl font-bold">{property.price}</h3>
-                        <p className="text-sm text-gray-500">{property.bhk}</p>
                         <p className="text-sm text-gray-500">{property.propertyType}</p>
                     </div>
                     <div className="flex flex-row justify-between items-center">
@@ -74,7 +73,6 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({property, on
                 />
                 <h3 className="text-lg font-bold">{property.price}</h3>
                 <div className="flex justify-between mt-2">
-                    <p className="text-sm text-gray-500">{property.bhk}</p>
                     <p className="text-sm text-gray-500">{property.propertyType}</p>
                 </div>
                 <div className="flex justify-between mt-2">
@@ -86,4 +84,4 @@ const ResidentialPopUpCard: React.FC<ResidentialPopUpCardProps> = ({property, on
     );
 };
 
-export default ResidentialPopUpCard;
+export default CommercialPopUpCard;

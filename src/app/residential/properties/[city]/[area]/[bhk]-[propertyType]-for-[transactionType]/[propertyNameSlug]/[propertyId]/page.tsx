@@ -1,10 +1,10 @@
 // app/residential/properties/[city]/[area]/[bhk]-[propertyType]-for-[transactionType]/[propertyNameSlug]/[propertyId]/page.tsx
 
 import Link from "next/link";
-import { ResidentialProperty } from "@/services/residentialPropertyService";
+import { ResidentialProperty } from "@/services/PropertyService";
 import { Suspense } from "react";
 import ClientPropertyView from "./ClientPropertyView";
-import { getResidentialPropertyById } from "@/services/residentialPropertyService";
+import { getResidentialPropertyById } from "@/services/PropertyService";
 import { formatIndianPrice } from "@/utils/Utils";
 import { parsePropertyConfig } from "@/utils/Utils";
 

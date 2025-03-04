@@ -1,6 +1,6 @@
 // app/sitemap.xml/route.ts
 import { NextResponse } from 'next/server';
-import { fetchResidentialProperties, ResidentialProperty } from '@/services/residentialPropertyService';
+import { fetchResidentialProperties, ResidentialProperty } from '@/services/PropertyService';
 
 // Set revalidation period for the sitemap (24 hours)
 export const revalidate = 86400;

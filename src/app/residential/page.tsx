@@ -17,7 +17,7 @@ const MapPage: React.FC = () => {
           <Navbar filters={filters} onFiltersChange={setFilters} />
       </div>
       <div className="flex-1 relative">
-          <MapContainer filters={filters}  />
+          <MapContainer filters={filters} propertyType="residential" />
       </div>
       </div>
 
