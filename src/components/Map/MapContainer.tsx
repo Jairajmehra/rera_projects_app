@@ -9,13 +9,20 @@ import useResidentialProperties from "../../hooks/useResidentialProperties";
 import useCommercialProperties from "../../hooks/useCommericlaProperties";
 import useViewport from "../../utils/useViewport";
 import { ResidentialProperty, CommercialProperty } from "../../services/PropertyService";
-import { ResidentialFilters } from "../../services/filters";
+import { ResidentialFilters, CommercialFilters } from "../../services/filters";
 
 // Define a union type for properties
 type Property = ResidentialProperty | CommercialProperty;
+// Union type for all property filters
+type PropertyFilters = ResidentialFilters | CommercialFilters;
+
+// Type guard to check if we have residential filters
+const isResidentialFilters = (filters: PropertyFilters): filters is ResidentialFilters => {
+  return (filters as ResidentialFilters).bhks !== undefined;
+};
 
 interface MapContainerProps {
-    filters: ResidentialFilters;
+    filters: PropertyFilters;
     propertyType: 'residential' | 'commercial';
 }
 
@@ -24,6 +31,14 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, propertyType }) =>
     const {bounds, setSelectedPropertyId} = useMap();
     const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
     const isMobile = useViewport(768);
+
+    // Get BHKs from residential filters
+    const getBHKs = () => {
+      if (propertyType === 'residential' && isResidentialFilters(filters)) {
+        return filters.bhks;
+      }
+      return [];
+    };
 
     // Fetch residential properties
     const { data: residentialData, isLoading: isResidentialLoading } = useResidentialProperties(
@@ -35,7 +50,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ filters, propertyType }) =>
                 east: bounds.getNorthEast().lng(),
                 west: bounds.getSouthWest().lng(),
             } : undefined,
-            bhks: filters.bhks,
+            bhks: getBHKs(),
             locality: filters.locations,
             propertyType: filters.propertyType,
             transactionType: filters.transactionType?.join(','),
@@ -163,4 +178,4 @@ const MapContainerWrapper: React.FC<MapContainerProps> = (props) => {
     );
   };
 
-export default  MapContainerWrapper;
+export default MapContainerWrapper;

@@ -1,29 +1,74 @@
 'use client';
 import { useState, useEffect } from 'react';
-import {ResidentialFilters as FiltersType} from '../services/filters';
 import useLocalities from '../hooks/useLocalities';
 import { LocationSearch } from './LocationSearch';
 import useViewport from '../utils/useViewport';
 import Filters from './Filters';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ResidentialFilters, CommercialFilters } from '../services/filters';
+
+// Union type for all property filters
+type PropertyFilters = ResidentialFilters | CommercialFilters;
 
 interface NavbarProps {
-  filters: FiltersType;
-  onFiltersChange: (filters: FiltersType) => void;
+  filters: PropertyFilters;
+  onFiltersChange: (filters: PropertyFilters) => void;
+  // Optional property type prop - if not provided, will determine from path
+  propertyType?: 'residential' | 'commercial';
 }
 
-export default function Navbar({filters, onFiltersChange}: NavbarProps) {
+export default function Navbar({filters, onFiltersChange, propertyType}: NavbarProps) {
   const {data: allLocalities = []} = useLocalities();
   const [isLocationSearchOpen, setIsLocationSearchOpen] = useState(false);
   const pathname = usePathname();
   
-  // Determine active tab based on current path
-  const isResidential = pathname?.includes('/residential') || (!pathname?.includes('/commercial') && !pathname?.includes('/residential'));
-  const isCommercial = pathname?.includes('/commercial');
+  // Determine property type either from props or path
+  const getPropertyType = (): 'residential' | 'commercial' => {
+    // If explicitly provided, use that
+    if (propertyType) return propertyType;
+    
+    // Otherwise determine from path
+    const isCommercialPath = pathname?.includes('/commercial');
+    return isCommercialPath ? 'commercial' : 'residential';
+  };
+
+  const currentPropertyType = getPropertyType();
+  
+  // For UI highlighting - which tab is active
+  const isResidential = currentPropertyType === 'residential';
+  const isCommercial = currentPropertyType === 'commercial';
+
+  // Type guard to check if we have residential filters
+  const isResidentialFilters = (filters: PropertyFilters): filters is ResidentialFilters => {
+    return (filters as ResidentialFilters).bhks !== undefined;
+  };
 
   const handleLocalityChange = (newLocalities: string[]) => {
-    onFiltersChange({...filters, locations: newLocalities});
+    if (currentPropertyType === 'residential') {
+      if (isResidentialFilters(filters)) {
+        // We have residential filters
+        onFiltersChange({
+          ...filters,
+          locations: newLocalities
+        });
+      } else {
+        // We need to convert to residential filters
+        onFiltersChange({
+          ...filters,
+          type: 'residential',
+          bhks: [],
+          locations: newLocalities
+        } as ResidentialFilters);
+      }
+    } else {
+      // Commercial filters
+      onFiltersChange({
+        ...filters,
+        type: 'commercial',
+        locations: newLocalities
+      } as CommercialFilters);
+    }
   };
 
   const isMobile = useViewport(768);
@@ -62,7 +107,8 @@ export default function Navbar({filters, onFiltersChange}: NavbarProps) {
           <div>
             <Filters
               filters={filters}
-              onFiltersChange={onFiltersChange}/>
+              onFiltersChange={onFiltersChange}
+              propertyType={currentPropertyType}/>
           </div>
         </div>
       </nav>
@@ -109,7 +155,8 @@ export default function Navbar({filters, onFiltersChange}: NavbarProps) {
         <div className="flex-grow ml-4">
           <Filters
             filters={filters}
-            onFiltersChange={onFiltersChange}/>
+            onFiltersChange={onFiltersChange}
+            propertyType={currentPropertyType}/>
         </div>
       </div>
     </nav>

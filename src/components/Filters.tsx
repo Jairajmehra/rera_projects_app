@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {availableBHKs} from '../utils/filterOptions';
-import {ResidentialFilters as FiltersType} from '../services/filters';
+import {ResidentialFilters, CommercialFilters} from '../services/filters';
 import {FilterSearch} from './UniversalFilterComponent';
 import useViewport from '../utils/useViewport';
 import { propertyTypes } from '../utils/filterOptions';
 import { transactionTypes } from '../utils/filterOptions';
 
+// Union type for all property filters
+type PropertyFilters = ResidentialFilters | CommercialFilters;
+
 interface FiltersProps {
-  filters: FiltersType;
-  onFiltersChange: (filters: FiltersType) => void;
+  filters: PropertyFilters;
+  onFiltersChange: (filters: PropertyFilters) => void;
+  propertyType: 'residential' | 'commercial';
 }
 
 const FilterIcon = () => (
@@ -27,14 +31,19 @@ const FilterIcon = () => (
   </svg>
 );
 
-export default function Filters({ filters, onFiltersChange}: FiltersProps) 
-{
+// Type guard to check if we have residential filters
+const isResidentialFilters = (filters: PropertyFilters): filters is ResidentialFilters => {
+  return (filters as ResidentialFilters).bhks !== undefined;
+};
 
+export default function Filters({ filters, onFiltersChange, propertyType}: FiltersProps) 
+{
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isMobile = useViewport(768);
   const [isBHKFilterOpen, setIsBHKFilterOpen] = useState(false);
   const [isPropertyTypeFilterOpen, setIsPropertyTypeFilterOpen] = useState(false);
   const [isTransactionTypeFilterOpen, setIsTransactionTypeFilterOpen] = useState(false);
+  
   // Handle escape key to close drawer
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -50,19 +59,76 @@ export default function Filters({ filters, onFiltersChange}: FiltersProps)
     };
   }, [isDrawerOpen]);
 
-  // Handle BHK change
+  // Handle BHK change - only for residential properties
   const handleBHKChange = (newBHKs: string[]) => {
-    onFiltersChange({...filters, bhks: newBHKs});
+    if (propertyType === 'residential') {
+      if (isResidentialFilters(filters)) {
+        onFiltersChange({...filters, bhks: newBHKs});
+      } else {
+        // Convert to residential filters if needed
+        onFiltersChange({
+          ...filters,
+          type: 'residential',
+          bhks: newBHKs
+        } as ResidentialFilters);
+      }
+    }
   };
 
   // Handle Property Type change
   const handlePropertyTypeChange = (newPropertyTypes: string[]) => {
-    onFiltersChange({...filters, propertyType: newPropertyTypes});
+    if (propertyType === 'residential') {
+      if (isResidentialFilters(filters)) {
+        onFiltersChange({...filters, propertyType: newPropertyTypes});
+      } else {
+        // Convert to residential filters if needed
+        onFiltersChange({
+          ...filters,
+          type: 'residential',
+          bhks: [],
+          propertyType: newPropertyTypes
+        } as ResidentialFilters);
+      }
+    } else {
+      // Commercial filters
+      onFiltersChange({
+        ...filters,
+        type: 'commercial', 
+        propertyType: newPropertyTypes
+      } as CommercialFilters);
+    }
   };
 
   // Handle Transaction Type change
   const handleTransactionTypeChange = (newTransactionTypes: string[]) => {
-    onFiltersChange({...filters, transactionType: newTransactionTypes});
+    if (propertyType === 'residential') {
+      if (isResidentialFilters(filters)) {
+        onFiltersChange({...filters, transactionType: newTransactionTypes});
+      } else {
+        // Convert to residential filters if needed
+        onFiltersChange({
+          ...filters,
+          type: 'residential',
+          bhks: [],
+          transactionType: newTransactionTypes
+        } as ResidentialFilters);
+      }
+    } else {
+      // Commercial filters
+      onFiltersChange({
+        ...filters,
+        type: 'commercial',
+        transactionType: newTransactionTypes
+      } as CommercialFilters);
+    }
+  };
+
+  // Access BHKs for residential properties only
+  const getBHKs = () => {
+    if (propertyType === 'residential' && isResidentialFilters(filters)) {
+      return filters.bhks;
+    }
+    return [];
   };
 
   if (isMobile) 
@@ -83,30 +149,33 @@ export default function Filters({ filters, onFiltersChange}: FiltersProps)
               >
               <h2 className="text-lg font-bold mb-4 text-center text-gray-800">Filters</h2>
               <div className="space-y-6">
-              <FilterSearch
-                label="BHK"
-                FilterOptions={availableBHKs}
-                selectedFilters={filters.bhks}
-                onSelect={handleBHKChange}
-                isOpen={isBHKFilterOpen}
-                setIsOpen={setIsBHKFilterOpen}
-              />
-              <FilterSearch
-                label="Property Type"
-                FilterOptions={propertyTypes}
-                selectedFilters={filters.propertyType}
-                onSelect={handlePropertyTypeChange}
-                isOpen={isPropertyTypeFilterOpen}
-                setIsOpen={setIsPropertyTypeFilterOpen}
-              />
+                {/* Show BHK filter only for residential properties */}
+                {propertyType === 'residential' && (
+                  <FilterSearch
+                    label="BHK"
+                    FilterOptions={availableBHKs}
+                    selectedFilters={getBHKs()}
+                    onSelect={handleBHKChange}
+                    isOpen={isBHKFilterOpen}
+                    setIsOpen={setIsBHKFilterOpen}
+                  />
+                )}
                 <FilterSearch
-                label="Rent/Sale"
-                FilterOptions={transactionTypes}
-                selectedFilters={filters.transactionType}
-                onSelect={handleTransactionTypeChange}
-                isOpen={isTransactionTypeFilterOpen}
-                setIsOpen={setIsTransactionTypeFilterOpen}
-              />
+                  label="Property Type"
+                  FilterOptions={propertyTypes}
+                  selectedFilters={filters.propertyType}
+                  onSelect={handlePropertyTypeChange}
+                  isOpen={isPropertyTypeFilterOpen}
+                  setIsOpen={setIsPropertyTypeFilterOpen}
+                />
+                <FilterSearch
+                  label="Rent/Sale"
+                  FilterOptions={transactionTypes}
+                  selectedFilters={filters.transactionType}
+                  onSelect={handleTransactionTypeChange}
+                  isOpen={isTransactionTypeFilterOpen}
+                  setIsOpen={setIsTransactionTypeFilterOpen}
+                />
               </div>
             </div>
           </div>
@@ -118,16 +187,19 @@ export default function Filters({ filters, onFiltersChange}: FiltersProps)
   return (
     <>
     <div className="flex flex-row w-full space-x-6">
-      <div className="flex flex-row w-full">
-        <FilterSearch
-          label="BHK"
-          FilterOptions={availableBHKs}
-          selectedFilters={filters.bhks}
-          onSelect={handleBHKChange}
-          isOpen={isBHKFilterOpen}
-          setIsOpen={setIsBHKFilterOpen}
-        />
-      </div>
+      {/* Show BHK filter only for residential properties */}
+      {propertyType === 'residential' && (
+        <div className="flex flex-row w-full">
+          <FilterSearch
+            label="BHK"
+            FilterOptions={availableBHKs}
+            selectedFilters={getBHKs()}
+            onSelect={handleBHKChange}
+            isOpen={isBHKFilterOpen}
+            setIsOpen={setIsBHKFilterOpen}
+          />
+        </div>
+      )}
       <div className="flex flex-row w-full">
         <FilterSearch
           label="Property Type"

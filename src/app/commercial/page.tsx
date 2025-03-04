@@ -2,36 +2,45 @@
 import { useState } from "react";
 import MapContainer from "@/components/Map/MapContainer";
 import Navbar from "@/components/NavBar";
+import { CommercialFilters, ResidentialFilters } from "@/services/filters";
 
-// Define Filters interface if you haven't already:
-export interface Filters {
-    bhks: string[];
-    propertyType: string[];
-    locations: string[];
-    transactionType: string[];
-    priceMin: number;
-    priceMax: number;
-  }
+// Union type for all property filters
+type PropertyFilters = ResidentialFilters | CommercialFilters;
 
 const MapPage: React.FC = () => {
-    // STEP 1: Create filters in MapPage
-  const [filters, setFilters] = useState<Filters>({bhks: [], propertyType: [],locations: [], transactionType:[], priceMin: 0, priceMax: 0});
+  // Initialize with commercial-specific filters
+  const [filters, setFilters] = useState<CommercialFilters>({
+    type: 'commercial',
+    propertyType: [],
+    locations: [], 
+    transactionType: [], 
+    priceMin: 0, 
+    priceMax: 0
+  });
 
-    return (
+  // Type-safe handler for filter changes
+  const handleFiltersChange = (newFilters: PropertyFilters) => {
+    // Ensure we're only setting CommercialFilters to our state
+    if (newFilters.type === 'commercial') {
+      setFilters(newFilters as CommercialFilters);
+    }
+  };
 
- 
-      <div className="mainpage">
+  return (
+    <div className="mainpage">
       <div className="navbar">
-          <Navbar filters={filters} onFiltersChange={setFilters} />
+        <Navbar 
+          filters={filters} 
+          onFiltersChange={handleFiltersChange}
+          propertyType="commercial" 
+        />
       </div>
       <div className="flex-1 relative">
-          <MapContainer filters={filters} propertyType="commercial" />
+        <MapContainer filters={filters} propertyType="commercial" />
       </div>
-      </div>
-
-    )
+    </div>
+  )
 }
-
 
 export default MapPage;
 

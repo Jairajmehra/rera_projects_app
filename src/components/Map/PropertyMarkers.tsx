@@ -1,9 +1,9 @@
 // projects-app/src/components/Map/PropertyMarkers.tsx
-
 import React, { useEffect, useRef, useMemo } from 'react';
 import { useMap } from '../../contexts/MapContext';
 import { parseCoordinates, getExtendedBounds } from '../../utils/Utils';
 import { ResidentialProperty, CommercialProperty } from '../../services/PropertyService';
+import {createCustomMarkerWithTailwind, createCustomMarkerContent} from '../../utils/customMarkerUtils';
 
 // Define a union type for properties
 type Property = ResidentialProperty | CommercialProperty;
@@ -56,12 +56,33 @@ const PropertyMarkers: React.FC<PropertyMarkersProps> = ({
       if (!markerPositionsRef.current.has(markerId)) {
         const { lat, lng } = parseCoordinates(property.coordinates);
         
-        // You could customize the marker style based on propertyType here
-        const marker = new window.google.maps.marker.AdvancedMarkerElement({
-          map: mapInstance,
-          position: { lat, lng },
-          title: markerId,
-        });
+        // // You could customize the marker style based on propertyType here
+        // const marker = new window.google.maps.marker.AdvancedMarkerElement({
+        //   map: mapInstance,
+        //   position: { lat, lng },
+        //   title: markerId,
+        // });
+               // Create different marker based on property type
+               let marker: google.maps.marker.AdvancedMarkerElement;
+        
+               if (propertyType === 'residential') {
+                 // Custom marker for residential properties
+                 const content = createCustomMarkerWithTailwind(property as ResidentialProperty);
+                 
+                 marker = new window.google.maps.marker.AdvancedMarkerElement({
+                   map: mapInstance,
+                   position: { lat, lng },
+                   title: markerId,
+                   content
+                 });
+               } else {
+                 // Default marker for commercial properties
+                 marker = new window.google.maps.marker.AdvancedMarkerElement({
+                   map: mapInstance,
+                   position: { lat, lng },
+                   title: markerId,
+                 });
+               }
         
         marker.addListener("click", () => {
           console.log(`${propertyType} marker clicked:`, property.airtable_id);
