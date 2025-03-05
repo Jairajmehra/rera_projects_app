@@ -41,16 +41,16 @@ async function parseRouteParams(params: Params | Promise<Params>) {
   
   try {
     // Access the specific parameter directly without spreading
-    const combinedSegment = resolvedParams["bhk]-[propertyType]-for-[transactionType"];
+    const combinedSegment = resolvedParams["bhk]-[propertyType]-for-[transactionType"] || "3-bhk-unknown-for-unknown";
     
     // Parse the property configuration
     const { bhkCount, propertyType, transactionType } = parsePropertyConfig(combinedSegment);
     
     return {
-      city: resolvedParams.city,
-      area: resolvedParams.area,
+      city: resolvedParams.city || "unknown",
+      area: resolvedParams.area || "unknown",
       propertyId: resolvedParams.propertyId,
-      propertyNameSlug: resolvedParams.propertyNameSlug,
+      propertyNameSlug: resolvedParams.propertyNameSlug || "property",
       bhkCount,
       propertyType,
       transactionType
@@ -60,11 +60,11 @@ async function parseRouteParams(params: Params | Promise<Params>) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error parsing route parameters:", errorMessage);
     return {
-      city: resolvedParams.city,
-      area: resolvedParams.area,
+      city: resolvedParams.city || "unknown",
+      area: resolvedParams.area || "unknown",
       propertyId: resolvedParams.propertyId,
-      propertyNameSlug: resolvedParams.propertyNameSlug,
-      bhkCount: "Unknown",
+      propertyNameSlug: resolvedParams.propertyNameSlug || "property",
+      bhkCount: "3",
       propertyType: "Unknown",
       transactionType: "Unknown"
     };

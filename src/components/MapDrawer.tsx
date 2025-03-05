@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react';
+import React, { useState } from 'react';
 import ResidentialPropertyCard from './ResidentialPropertyCard';
 import CommercialPropertyCard from './CommercialPropertyCard';
 import useViewport from '../utils/useViewport';

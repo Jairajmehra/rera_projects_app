@@ -27,19 +27,24 @@ export const getExtendedBounds = (bounds: google.maps.LatLngBounds, extensionPer
             return new window.google.maps.LatLngBounds(extendedSw, extendedNe);
           };
 
-          function slugify(value: string): string {
+          function slugify(value: string | undefined): string {
+            if (!value || value.trim() === '') {
+              return 'unknown';
+            }
             return value
               .toLowerCase()
               .trim()
-              .replace(/\//g, '-')      // Replace slashes with dashe
+              .replace(/\//g, '-')      // Replace slashes with dashes
               .replace(/\s+/g, '-')     // Replace all spaces/tabs/newlines with a single dash
               .replace(/[^\w-]+/g, '')  // Remove any other weird characters (punctuation, etc.)
               .replace(/-+/g, '-');     // Collapse multiple dashes into one
           }
           export const generatePropertyUrl = (property: Property) => {
-            // Helper to handle arrays or strings
-            const formatValue = (value: string | string[]): string =>
-              Array.isArray(value) ? value[0] : value;
+            // Helper to handle arrays or strings, with fallback for missing values
+            const formatValue = (value: string | string[] | undefined): string => {
+              if (!value) return "unknown";
+              return Array.isArray(value) ? value[0] : value;
+            };
           
             const city = slugify("Ahmedabad"); // or slugify(formatValue(property.city)) 
             const area = slugify(formatValue(property.locality));
@@ -47,11 +52,11 @@ export const getExtendedBounds = (bounds: google.maps.LatLngBounds, extensionPer
             // Check if it's a residential property (has bhk property)
             if ('bhk' in property) {
               // Residential property URL
-              const bhk = slugify(formatValue(property.bhk));
+              const bhk = slugify(formatValue(property.bhk || "3-bhk"));
               const rawPropertyType = formatValue(property.propertyType);
               const propertyType = slugify(rawPropertyType);
               const transactionType = slugify(formatValue(property.transactionType));
-              const rawName = property.name;
+              const rawName = property.name || "property"; // Default fallback
               const propertyNameSlug = slugify(rawName);
               return `/residential/properties/${city}/${area}/${bhk}-${propertyType}-for-${transactionType}/${propertyNameSlug}/${property.airtable_id}`;
             } else {
@@ -59,7 +64,7 @@ export const getExtendedBounds = (bounds: google.maps.LatLngBounds, extensionPer
               const rawPropertyType = formatValue(property.propertyType);
               const propertyType = slugify(rawPropertyType);
               const transactionType = slugify(formatValue(property.transactionType));
-              const rawName = property.name;
+              const rawName = property.name || "property"; // Default fallback
               const propertyNameSlug = slugify(rawName);
               return `/commercial/properties/${city}/${area}/${propertyType}-for-${transactionType}/${propertyNameSlug}/${property.airtable_id}`;
             }
@@ -90,24 +95,25 @@ export const parsePropertyConfig = (config: string): {
 } => {
   // Validate input is a non-empty string
   if (typeof config !== 'string' || config.trim() === '') {
-    throw new Error('Property config must be a non-empty string');
+    return { bhkCount: "3", propertyType: "unknown", transactionType: "unknown" };
   }
 
   // Match the pattern: e.g., "4-bhk-bungalow-villa-for-rent"
   const match = config.match(/(\d+)-bhk-(.*)-for-(.*)/);
   if (!match) {
-    throw new Error(`Invalid property config format: ${config}`);
+    console.error(`Invalid property config format: ${config}`);
+    return { bhkCount: "3", propertyType: "unknown", transactionType: "unknown" };
   }
 
   // Destructure the match array, skipping the full match (index 0)
   const [, bhkCount, propertyType, transactionType] = match;
 
-  // Additional validation (optional)
-  if (!bhkCount || !propertyType || !transactionType) {
-    throw new Error(`Incomplete property config: bhkCount=${bhkCount}, propertyType=${propertyType}, transactionType=${transactionType}`);
-  }
-
-  return { bhkCount, propertyType, transactionType };
+  // Return with fallbacks
+  return { 
+    bhkCount: bhkCount || "3", 
+    propertyType: propertyType || "unknown", 
+    transactionType: transactionType || "unknown"
+  };
 };
 
 export const parseCommercialPropertyConfig = (config: string): {
@@ -116,22 +122,22 @@ export const parseCommercialPropertyConfig = (config: string): {
 } => {
   // Validate input is a non-empty string
   if (typeof config !== 'string' || config.trim() === '') {
-    throw new Error('Commercial property config must be a non-empty string');
+    return { propertyType: "unknown", transactionType: "unknown" };
   }
 
   // Match the pattern: e.g., "office-space-for-rent"
   const match = config.match(/(.*)-for-(.*)/);
   if (!match) {
-    throw new Error(`Invalid commercial property config format: ${config}`);
+    console.error(`Invalid commercial property config format: ${config}`);
+    return { propertyType: "unknown", transactionType: "unknown" };
   }
 
   // Destructure the match array, skipping the full match (index 0)
   const [, propertyType, transactionType] = match;
 
-  // Additional validation (optional)
-  if (!propertyType || !transactionType) {
-    throw new Error(`Incomplete commercial property config: propertyType=${propertyType}, transactionType=${transactionType}`);
-  }
-
-  return { propertyType, transactionType };
+  // Additional validation with fallbacks
+  return { 
+    propertyType: propertyType || "unknown", 
+    transactionType: transactionType || "unknown" 
+  };
 };

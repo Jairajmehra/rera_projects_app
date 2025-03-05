@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import { useMap } from '../../contexts/MapContext';
 import { parseCoordinates, getExtendedBounds } from '../../utils/Utils';
 import { ResidentialProperty, CommercialProperty } from '../../services/PropertyService';
-import {createCustomMarkerWithTailwind, createCustomMarkerContent} from '../../utils/customMarkerUtils';
+import { createCustomMarkerWithTailwind } from '../../utils/customMarkerUtils';
 
 // Define a union type for properties
 type Property = ResidentialProperty | CommercialProperty;

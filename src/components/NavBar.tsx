@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import useLocalities from '../hooks/useLocalities';
 import { LocationSearch } from './LocationSearch';
 import useViewport from '../utils/useViewport';

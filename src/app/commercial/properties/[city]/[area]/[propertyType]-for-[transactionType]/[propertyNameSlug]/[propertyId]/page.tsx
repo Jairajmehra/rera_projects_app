@@ -1,7 +1,6 @@
 // app/commercial/properties/[city]/[area]/[propertyType]-for-[transactionType]/[propertyNameSlug]/[propertyId]/page.tsx
 
 import Link from "next/link";
-import {  CommercialProperty } from "@/services/PropertyService";
 import { Suspense } from "react";
 import ClientPropertyView from "./ClientPropertyView";
 import { getCommercialPropertyById } from "@/services/PropertyService";
@@ -15,23 +14,9 @@ export const revalidate = 86400; // 24 * 60 * 60 = 86400 seconds
 type Params = {
   city: string;
   area: string;
-  "[propertyType]-for-[transactionType": string; // Exact parameter name from logs
+  "[propertyType]-for-[transactionType]": string; // Exact parameter name from logs
   propertyNameSlug: string;
   propertyId: string;
-}
-
-// Server-side data fetching function
-async function fetchCommercialProperty(propertyId: string): Promise<CommercialProperty | null> {
-  try {
-    const property = await getCommercialPropertyById(propertyId);
-    if (!property) {
-      return null;
-    }
-    return property;
-  } catch (error) {
-    console.error("Error fetching property details:", error);
-    return null;
-  }
 }
 
 // Extract readable info from the combined route parameter
@@ -41,16 +26,16 @@ async function parseRouteParams(params: Params | Promise<Params>) {
   
   try {
     // Access the specific parameter directly without spreading
-    const combinedSegment = resolvedParams["[propertyType]-for-[transactionType"];
+    const combinedSegment = resolvedParams["[propertyType]-for-[transactionType]"] || "unknown-for-unknown";
     
     // Parse the property configuration using the utility function
     const { propertyType, transactionType } = parseCommercialPropertyConfig(combinedSegment);
     
     return {
-      city: resolvedParams.city,
-      area: resolvedParams.area,
+      city: resolvedParams.city || "unknown",
+      area: resolvedParams.area || "unknown",
       propertyId: resolvedParams.propertyId,
-      propertyNameSlug: resolvedParams.propertyNameSlug,
+      propertyNameSlug: resolvedParams.propertyNameSlug || "property",
       propertyType,
       transactionType
     };
@@ -59,10 +44,10 @@ async function parseRouteParams(params: Params | Promise<Params>) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error parsing route parameters:", errorMessage);
     return {
-      city: resolvedParams.city,
-      area: resolvedParams.area,
+      city: resolvedParams.city || "unknown",
+      area: resolvedParams.area || "unknown",
       propertyId: resolvedParams.propertyId,
-      propertyNameSlug: resolvedParams.propertyNameSlug,
+      propertyNameSlug: resolvedParams.propertyNameSlug || "property",
       propertyType: "Unknown",
       transactionType: "Unknown"
     };

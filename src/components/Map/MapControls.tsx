@@ -3,9 +3,8 @@
 import React from 'react';
 import { useMap } from '../../contexts/MapContext';
 
-interface MapControlsProps {
-  // Add any props needed for custom map controls
-}
+// No props needed for this component
+type MapControlsProps = Record<string, never>;
 
 const MapControls: React.FC<MapControlsProps> = () => {
   const { mapInstance } = useMap();
