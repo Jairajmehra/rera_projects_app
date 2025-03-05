@@ -109,3 +109,29 @@ export const parsePropertyConfig = (config: string): {
 
   return { bhkCount, propertyType, transactionType };
 };
+
+export const parseCommercialPropertyConfig = (config: string): {
+  propertyType: string;
+  transactionType: string;
+} => {
+  // Validate input is a non-empty string
+  if (typeof config !== 'string' || config.trim() === '') {
+    throw new Error('Commercial property config must be a non-empty string');
+  }
+
+  // Match the pattern: e.g., "office-space-for-rent"
+  const match = config.match(/(.*)-for-(.*)/);
+  if (!match) {
+    throw new Error(`Invalid commercial property config format: ${config}`);
+  }
+
+  // Destructure the match array, skipping the full match (index 0)
+  const [, propertyType, transactionType] = match;
+
+  // Additional validation (optional)
+  if (!propertyType || !transactionType) {
+    throw new Error(`Incomplete commercial property config: propertyType=${propertyType}, transactionType=${transactionType}`);
+  }
+
+  return { propertyType, transactionType };
+};

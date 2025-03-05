@@ -29,7 +29,7 @@ export default function Home() {
             <p className="text-xl md:text-2xl mb-8">
               Search through 30,000+ properties and 14,000+ projects with our AI-powered platform
             </p>
-            <Link href="/map" className="bg-white text-blue-700 hover:bg-blue-50 font-bold py-3 px-8 rounded-full text-lg shadow-lg transition-all duration-300 inline-block">
+            <Link href="/residential" className="bg-white text-blue-700 hover:bg-blue-50 font-bold py-3 px-8 rounded-full text-lg shadow-lg transition-all duration-300 inline-block">
               Search Properties Now
             </Link>
           </div>

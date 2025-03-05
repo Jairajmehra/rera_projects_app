@@ -1,20 +1,33 @@
 // app/sitemap.xml/route.ts
 import { NextResponse } from 'next/server';
-import { fetchResidentialProperties, ResidentialProperty } from '@/services/PropertyService';
+import { 
+  fetchResidentialProperties, 
+  ResidentialProperty,
+  fetchCommercialProperties,
+  CommercialProperty
+} from '@/services/PropertyService';
 
 // Set revalidation period for the sitemap (24 hours)
 export const revalidate = 86400;
 
 export async function GET() {
   try {
-    // Fetch all properties with a high limit to get as many as possible
-    const response = await fetchResidentialProperties({
+    // Fetch residential properties
+    const residentialResponse = await fetchResidentialProperties({
       params: {
         limit: 10000, // Adjust based on your API capabilities
       }
     });
     
-    const properties = response.properties;
+    // Fetch commercial properties
+    const commercialResponse = await fetchCommercialProperties({
+      params: {
+        limit: 10000, // Adjusted limit to prevent overloading
+      }
+    });
+    
+    const residentialProperties = residentialResponse.properties;
+    const commercialProperties = commercialResponse.properties;
 
     // Helper function to format URL segments
     const formatSegment = (value: string | string[]): string => {
@@ -66,7 +79,9 @@ export async function GET() {
           <priority>${page.priority}</priority>
         </url>
       `).join('')}
-      ${properties.map((property: ResidentialProperty) => {
+      
+      {/* Residential Properties */}
+      ${residentialProperties.map((property: ResidentialProperty) => {
         // Format property data for URL segments
         const city = 'ahmedabad'; // Default city or extract from property if available
         const area = formatSegment(property.locality);
@@ -85,6 +100,28 @@ export async function GET() {
         return `
         <url>
           <loc>https://www.propview.ai/residential/properties/${city}/${area}/${bhkCount}-bhk-${propertyType}-for-${transactionType}/${propertyName}/${property.airtable_id}</loc>
+          <lastmod>${lastMod}</lastmod>
+          <changefreq>daily</changefreq>
+          <priority>0.8</priority>
+        </url>
+      `}).join('')}
+      
+      {/* Commercial Properties */}
+      ${commercialProperties.map((property: CommercialProperty) => {
+        // Format property data for URL segments
+        const city = 'ahmedabad'; // Default city or extract from property if available
+        const area = formatSegment(property.locality);
+        
+        // Important: Replace slashes with hyphens in property type
+        const propertyType = formatSegment(property.propertyType);
+        const transactionType = formatSegment(property.transactionType);
+        const propertyName = property.name.toLowerCase().replace(/\//g, '-').replace(/\s+/g, '-');
+        
+        const lastMod = currentDate;
+        
+        return `
+        <url>
+          <loc>https://www.propview.ai/commercial/properties/${city}/${area}/${propertyType}-for-${transactionType}/${propertyName}/${property.airtable_id}</loc>
           <lastmod>${lastMod}</lastmod>
           <changefreq>daily</changefreq>
           <priority>0.8</priority>

@@ -1,5 +1,5 @@
 
-const API_BASE_URL = 'http://192.168.29.3:8086';
+const API_BASE_URL = 'https://test-vision-api-389008.el.r.appspot.com';
 
 export interface ResidentialProperty 
 {   
