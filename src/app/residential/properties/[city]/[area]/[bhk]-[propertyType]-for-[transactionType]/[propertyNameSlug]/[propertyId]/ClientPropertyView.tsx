@@ -175,7 +175,7 @@ export default function ClientPropertyView({
         {/* Back to Map */}
         <div className="mb-6">
           <Link 
-            href="/map" 
+            href="/residential" 
             className="inline-flex items-center text-blue-600 hover:text-blue-800"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -324,7 +324,7 @@ export default function ClientPropertyView({
               
               {/* View on Map Button */}
               <Link 
-                href="/map" 
+                href="/residential" 
                 className="mt-6 flex items-center justify-center gap-2 text-blue-600 font-medium hover:text-blue-800"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
