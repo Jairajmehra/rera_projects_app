@@ -74,7 +74,7 @@ async function parseRouteParams(params: Params | Promise<Params>) {
 export async function generateMetadata({ params }: { params: Promise<Params> }) {
   // Parse parameters and await the result
   const parsedParams = await parseRouteParams(params);
-  const { city, area, propertyId, bhkCount, propertyType, transactionType } = parsedParams;
+  const { city, area, propertyId, bhkCount, propertyType, transactionType, propertyNameSlug } = parsedParams;
   
   const property = await getPropertyDetails(propertyId);
   
@@ -85,12 +85,18 @@ export async function generateMetadata({ params }: { params: Promise<Params> }) 
     };
   }
   
+  const canonicalUrl = `https://www.propview.ai/residential/properties/${encodeURIComponent(city)}/${encodeURIComponent(area)}/${encodeURIComponent(bhkCount)}-${encodeURIComponent(propertyType)}-for-${encodeURIComponent(transactionType)}/${encodeURIComponent(propertyNameSlug)}/${encodeURIComponent(propertyId)}`;
+  
   return {
     metadataBase: new URL('https://www.propview.ai'),
     title: `${bhkCount} ${propertyType} for ${transactionType} in ${area}, ${city}`,
     description: `${property.name} - A beautiful ${bhkCount} ${propertyType} for ${transactionType} in ${area}, ${city}. Price: ₹${formatIndianPrice(property.price)}.`,
     openGraph: {
       images: [property.photos[0]],
+    },
+    // Add canonical URL to prevent duplicate content issues
+    alternates: {
+      canonical: canonicalUrl,
     },
   };
 }
@@ -109,7 +115,7 @@ export default async function PropertyPage({ params }: { params: Promise<Params>
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <h1 className="text-2xl font-bold text-red-500 mb-4">Property Not Found</h1>
         <p className="text-gray-600 mb-6">We couldn&apos;t find the property you&apos;re looking for.</p>
-        <Link href="/map" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+        <Link href="/residential" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
           View All Properties
         </Link>
       </div>

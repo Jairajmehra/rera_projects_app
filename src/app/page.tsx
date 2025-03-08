@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     locale: "en_IN",
     type: "website",
   },
+  alternates: {
+    canonical: "https://www.propview.ai",
+  },
 };
 
 export default function Home() {

@@ -58,7 +58,7 @@ export default function ClientPropertyView({
           
           {/* Back Button */}
           <Link 
-            href="/" 
+            href="/commercial" 
             className="absolute top-4 left-4 bg-white/80 p-2 rounded-full shadow-md"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -172,7 +172,7 @@ export default function ClientPropertyView({
         {/* Back to Map */}
         <div className="mb-6">
           <Link 
-            href="/map" 
+            href="/commercial" 
             className="inline-flex items-center text-blue-600 hover:text-blue-800"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

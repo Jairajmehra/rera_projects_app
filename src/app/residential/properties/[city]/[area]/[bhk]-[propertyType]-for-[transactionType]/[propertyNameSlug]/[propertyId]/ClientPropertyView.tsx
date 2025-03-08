@@ -58,7 +58,7 @@ export default function ClientPropertyView({
           
           {/* Back Button */}
           <Link 
-            href="/map" 
+            href="/residential" 
             className="absolute top-4 left-4 bg-white/80 p-2 rounded-full shadow-md"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -134,7 +134,7 @@ export default function ClientPropertyView({
           
           {/* View on Map Button */}
           <Link 
-            href="/map" 
+            href="/residential" 
             className="mt-4 flex items-center justify-center gap-2 text-blue-600 font-medium"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

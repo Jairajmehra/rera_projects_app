@@ -57,7 +57,7 @@ async function parseRouteParams(params: Params | Promise<Params>) {
 export async function generateMetadata({ params }: { params: Promise<Params> }) {
   // Parse parameters and await the result
   const parsedParams = await parseRouteParams(params);
-  const { city, area, propertyId, propertyType, transactionType } = parsedParams;
+  const { city, area, propertyId, propertyNameSlug, propertyType, transactionType } = parsedParams;
   
   const property = await getCommercialPropertyById(propertyId);
   
@@ -67,6 +67,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }) 
       description: "The requested property could not be found."
     };
   }
+  const canonicalUrl = `https://www.propview.ai/commercial/properties/${encodeURIComponent(city)}/${encodeURIComponent(area)}/${encodeURIComponent(propertyType)}-for-${encodeURIComponent(transactionType)}/${encodeURIComponent(propertyNameSlug)}/${encodeURIComponent(propertyId)}`;
   
   return {
     metadataBase: new URL('https://www.propview.ai'),
@@ -75,10 +76,12 @@ export async function generateMetadata({ params }: { params: Promise<Params> }) 
     openGraph: {
       images: [property.photos[0]],
     },
+     // Add canonical URL to prevent duplicate content issues
+     alternates: {
+      canonical: canonicalUrl,
+    },
   };
 }
-
-
 
 export default async function PropertyPage({ params }: { params: Promise<Params> }) {
   // Parse parameters and await the result
@@ -157,4 +160,3 @@ export default async function PropertyPage({ params }: { params: Promise<Params>
     </>
   );
 }
-  
