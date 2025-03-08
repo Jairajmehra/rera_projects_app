@@ -48,10 +48,16 @@ export async function GET() {
         priority: '1.0' // Homepage gets highest priority
       },
       {
-        url: 'https://www.propview.ai/map',
+        url: 'https://www.propview.ai/residential',
         lastmod: currentDate,
         changefreq: 'daily',
         priority: '0.9' // Map/search page gets high priority
+      },
+      {
+        url: 'https://www.propview.ai/commercial',
+        lastmod: currentDate,
+        changefreq: 'daily',
+        priority: '0.9' // Commercial page gets high priority
       },
       // Add other important pages as needed
       // {
